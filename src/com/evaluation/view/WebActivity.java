@@ -33,6 +33,7 @@ public class WebActivity extends Activity {
 	private TextView weekView;
 	private TextView dateView;
 	private TextView timeView;
+	private TextView titleView;
 	private String dateValue;
 	private String weekValue;
 	private String timeValue;
@@ -53,6 +54,7 @@ public class WebActivity extends Activity {
 		webView.getSettings().setBuiltInZoomControls(true);
 		String url = this.getIntent().getStringExtra("url");
 		String content = this.getIntent().getStringExtra("content");
+		String title = this.getIntent().getStringExtra("title");
 		if(url != null) {
 			if(url.indexOf("http://") < 0)
 				url = "http://" + url;
@@ -66,6 +68,9 @@ public class WebActivity extends Activity {
         dateView = (TextView) findViewById(R.id.date);
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
+//		titleView = (TextView) findViewById(R.id.title);
+//		if(title != null)
+//			titleView.setText(title);
 		
         back = (ImageButton) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {

@@ -1,6 +1,7 @@
 package com.evaluation.model;
 
 public class Announcement {
+	private int id;
 	private String account;
 	private String title;
 	private String imageName;
@@ -8,6 +9,12 @@ public class Announcement {
 	private String content;
 	private String repDate;
 	private String outOfDate;
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
 	public String getAccount() {
 		return account;
 	}

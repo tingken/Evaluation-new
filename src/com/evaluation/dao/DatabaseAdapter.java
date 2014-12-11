@@ -39,7 +39,7 @@ public class DatabaseAdapter {
 	private static final int DB_VERSION = 3;
 	private Context mContext = null;
 	private String[] userColumn = new String[] {"ACCOUNT", "PASSWORD", "LOGIN_ID", "NAME", "ORG", "WORKNO", "PHOTO_NAME", "PHOTO_URL", "OPERATION", "TIME"};
-	private String[] annoColumn = {"USER_ACCOUNT", "IMAGE_NAME", "IMAGE_URL", "TITLE", "CONTENT", "ISSUE_DATE", "OUTOF_DATE"};
+	private String[] annoColumn = {"ID", "USER_ACCOUNT", "IMAGE_NAME", "IMAGE_URL", "TITLE", "CONTENT", "ISSUE_DATE", "OUTOF_DATE"};
 	private String[] evaluationColumn = {"ID", "EVALUATION", "USER_ACCOUNT", "PASSWORD"};
 	private static final String CREATE_USER_TB = "CREATE TABLE "
 												+ USER_TABLE
@@ -275,6 +275,7 @@ public class DatabaseAdapter {
 		for(Map<String, String> map : mapList) {
 			//USER_ACCOUNT, FILE_NAME, TITLE
 			Announcement anno = new Announcement();
+			anno.setId(Integer.parseInt(map.get("ID")));
 			anno.setAccount(map.get("USER_ACCOUNT"));
 			anno.setImageName(map.get("IMAGE_NAME"));
 			anno.setImageUrl(map.get("IMAGE_URL"));
@@ -286,6 +287,46 @@ public class DatabaseAdapter {
 		}
 		return annoList;
 	}
+	
+	public Announcement findAnnouncementsById(int id) {
+		//ACCOUNT, PASSWORD, NAME, ORG, WINNO, PHOTO_NAME
+		Cursor mCursor = null;
+		Announcement anno = new Announcement();
+		mCursor = mSQLiteDatabase.query(false, ANNOUNCE_TABLE, annoColumn, "ID" + "=" + id, null, null, null, null, null);
+		if(mCursor != null){
+			mCursor.moveToFirst();
+		}
+		Log.e(TAG, "count: " + String.valueOf(mCursor.getCount()));
+		if(mCursor.getCount() > 1){
+			Log.e(TAG, "There are more than 1 user use this account.");
+			return null;
+		}
+		if(mCursor.getCount() <= 0)
+			return null;
+		Map<String, String> map = new HashMap<String, String>();
+		for(String column : annoColumn) {
+			int columnIndex = mCursor.getColumnIndexOrThrow(column);
+			String value;
+			try{
+				value = mCursor.getString(columnIndex);
+			}catch(Exception e)
+			{
+				value = null;
+			}
+			map.put(column, value);
+		}
+		anno.setId(Integer.parseInt(map.get("ID")));
+		anno.setAccount(map.get("USER_ACCOUNT"));
+		anno.setImageName(map.get("IMAGE_NAME"));
+		anno.setImageUrl(map.get("IMAGE_URL"));
+		anno.setTitle(map.get("TITLE"));
+		anno.setContent(map.get("CONTENT"));
+		anno.setRepDate(map.get("ISSUE_DATE"));
+		anno.setOutOfDate(map.get("OUTOF_DATE"));
+		Log.e(TAG, "数据库时间" + map.get("TIME"));
+		return anno;
+	}
+	
 	public List<Announcement> findOnePageAnno(String account, int start, int size) {
 		Cursor mCursor = null;
 		List<Announcement> annoList = new ArrayList<Announcement>();
@@ -316,6 +357,7 @@ public class DatabaseAdapter {
 		for(Map<String, String> map : mapList) {
 			//USER_ACCOUNT, FILE_NAME, TITLE
 			Announcement anno = new Announcement();
+			anno.setId(Integer.parseInt(map.get("ID")));
 			anno.setAccount(map.get("USER_ACCOUNT"));
 			anno.setImageName(map.get("IMAGE_NAME"));
 			anno.setImageUrl(map.get("IMAGE_URL"));

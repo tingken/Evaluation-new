@@ -52,9 +52,9 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:gravity="center"
-        android:background="@drawable/evaluation_bg" >
+        android:background="@drawable/gray_bg" >
 	   	<LinearLayout
-		    android:layout_width="561dp"
+		    android:layout_width="664px"
 		    android:layout_height="fill_parent"
 		    android:orientation="vertical">
 	        <TextView 
@@ -62,16 +62,27 @@
 		        android:layout_height="wrap_content"
 		        android:gravity="center"
 		        android:text="通知中心"
-		        android:layout_marginTop="50dp"
+		        android:layout_marginTop="20px"
 		        android:textSize="30sp"
 		        android:textColor="#000000"/>
+	        <LinearLayout
+	            android:layout_width="match_parent"
+	            android:layout_height="3dp"
+	            android:layout_marginTop="18px"
+	            android:background="#c61820"
+	            android:orientation="vertical"/>
 			<ListView
 			    android:id="@+id/listView"
 			    android:layout_width="wrap_content"
-			    android:layout_height="250dp"
+			    android:layout_height="330dp"
 			    android:divider="@null"
-			    android:layout_marginTop="10dp"/>
-			
+			    android:dividerHeight="3px"
+			    android:layout_marginTop="5dp"/>
+			<LinearLayout
+	            android:layout_width="match_parent"
+	            android:layout_height="3dp"
+	            android:background="#c61820"
+	            android:orientation="vertical"/>
 			<include layout="@layout/page_button" />
 		</LinearLayout>
 	</RelativeLayout>

@@ -21,6 +21,7 @@ public class HomeService extends Service{
 	private static final String TAG = "effort";
 	//private TcpConnect iTCPConnect = null;
 	//public DatabaseAdapter mDataAdapter;
+	private final IBinder mBinder = new LocalBinder();
 	public boolean serviceOver = false;
 	private int value;
 	
@@ -28,7 +29,7 @@ public class HomeService extends Service{
 	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
 		Log.e(TAG, "============>HomeService.onBind");
-		return null;
+		return mBinder;
 	}
 	public int getValue() {
 		return value;

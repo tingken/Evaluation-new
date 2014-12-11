@@ -84,7 +84,7 @@ public class InfoListAdapter extends BaseAdapter {
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
 			Intent intent = new Intent(context, InfoDetailActivity.class);
-			intent.putExtra("currentItem", (pageNum-1) * row + item);
+			intent.putExtra("currentItem", annoList.get(item).getId());
 			intent.putExtra("account", annoList.get(item).getAccount());
 			context.startActivity(intent);
 		}

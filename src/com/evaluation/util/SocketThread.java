@@ -45,7 +45,7 @@ public class SocketThread extends Thread {
 //		myLooper = Looper.myLooper();
 		while (keepAlive) {
 			try {
-				socket.setSoTimeout(600000);
+				socket.setSoTimeout(6000);
 			} catch (SocketException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -70,6 +70,8 @@ public class SocketThread extends Thread {
 					b[1] = DataType.RESPONSE.Flag();
 					b[2] = DataType.HEART_BEAT.Flag();
 					b[3] = DataHelper.END_BYTE;
+					Intent intent = new Intent("HEART_BEAT");
+					context.sendBroadcast(intent);
 					break;
 				case CLOSE_CONNECTION:
 					b[0] = DataHelper.BEGIN_BYTE;
@@ -81,10 +83,10 @@ public class SocketThread extends Thread {
 				case APPLY_EVALUATE:
 					needEvaluate = true;
 					Log.e("effort", "APPLY_EVALUATE");
-					Intent intent = new Intent(context,
+					Intent emptyIntent = new Intent(context,
 							EvaluationActivity.class);
-					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					context.startActivity(intent);
+					emptyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					context.startActivity(emptyIntent);
 					break;
 				case LEAVE_INFO:
 					b[0] = DataHelper.BEGIN_BYTE;
@@ -142,10 +144,15 @@ public class SocketThread extends Thread {
 				}
 				out.write(b);
 				out.flush();
-			} catch (Exception e) {
+			} catch (java.net.SocketTimeoutException e) {
+				e.printStackTrace();
+				keepAlive = false;
+				Intent intent = new Intent("TIMEOUT");
+				context.sendBroadcast(intent);
+			}catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				Log.e(TAG, e.toString());
+				Log.e(TAG, "SocketThread " + e.toString());
 			}
 		}
 		try {

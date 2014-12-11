@@ -5,6 +5,7 @@ import java.util.List;
 import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.model.Announcement;
 import com.evaluation.util.InfoListAdapter;
+import com.evaluation.util.LineView;
 import com.evaluation.util.OnPageChangeListener;
 import com.evaluation.util.PageControl;
 
@@ -36,9 +37,10 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
     private PageControl pageControl;
     private ListView infoListView;
     private int pageNum = 1;
-    private final int numPerPage = 9;
+    private final int numPerPage = 10;
 	private String TAG = "effort";
 	private boolean activityOver = false;
+	private LineView lineView;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

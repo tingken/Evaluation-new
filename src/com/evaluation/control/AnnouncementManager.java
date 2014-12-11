@@ -34,7 +34,7 @@ public class AnnouncementManager {
 	private Announcement announce;
 	private String dirPath;
 	private Context context;
-	private Bitmap bitmap = null;
+	//private Bitmap bitmap = null;
 	private String TAG = "effort";
 	public static int annWidth = 500, annHeight = 300, picWidth = 133, picHeight = 203;
 	
@@ -77,7 +77,7 @@ public class AnnouncementManager {
 	}
 	
 	public Bitmap getBitmapByName(String fileName) {
-		//Bitmap bitmap = null;
+		Bitmap bitmap = null;
 		File file = new File(dirPath + "/" + fileName);
         	if(file.exists()){
 //        		inputStream = context.getAssets().open(fileName);//new FileInputStream(dirPath + "/download/" + fileName);
@@ -90,8 +90,8 @@ public class AnnouncementManager {
 		return bitmap;
 	}
 		
-	public ImageView getImageViewByName(String fileName) {
-		ImageView imageView = new ImageView(context);
+	public Bitmap getRoundCornerBitmapByName(String fileName) {
+		//ImageView imageView = new ImageView(context);
 		Bitmap bitmap = null;
 		File file = new File(dirPath + "/" + fileName);
         try {
@@ -103,7 +103,7 @@ public class AnnouncementManager {
         		//bitmap = getThumBitmapFromFile(dirPath + "/" + fileName);
 //    			options.inJustDecodeBounds = false;
     			
-    			imageView.setImageBitmap(bitmap);
+//    			imageView.setImageBitmap(bitmap);
         	}
         } catch (OutOfMemoryError e) {
 			if(bitmap != null && !bitmap.isRecycled()){
@@ -111,7 +111,7 @@ public class AnnouncementManager {
 	         	System.gc();  //提醒系统及时回收 
 			}
         }
-        return imageView;
+        return bitmap;
 	}
 	
 	public List<ImageView> getImageViews() {
@@ -171,7 +171,7 @@ public class AnnouncementManager {
 		// //计算合适的输出尺寸（第三个参数是最大能接受的像素值）
 		opts.inSampleSize = getOptionsSampleSize(opts, 405, 670);
 		opts.inJustDecodeBounds = false; // output
-		//Bitmap bmp = null;
+		Bitmap bitmap = null;
 		try {
 			bitmap = BitmapFactory.decodeFile(imageFile, opts); // 这步decodeFile才是真的output
 			return bitmap;
@@ -269,11 +269,11 @@ public class AnnouncementManager {
 		canvas.drawBitmap(bitmap, rect, rect, paint); 
 		return output; 
 	}
-	public void close() {
-		if(bitmap != null && !bitmap.isRecycled()){
-			bitmap.recycle();   //回收图片所占的内存
-         	bitmap = null;
-         	System.gc();  //提醒系统及时回收 
-		}
-	}
+//	public void close() {
+//		if(bitmap != null && !bitmap.isRecycled()){
+//			bitmap.recycle();   //回收图片所占的内存
+//         	bitmap = null;
+//         	System.gc();  //提醒系统及时回收 
+//		}
+//	}
 }

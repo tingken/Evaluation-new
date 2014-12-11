@@ -1,6 +1,9 @@
 package com.evaluation.view;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -109,6 +112,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	// 切换当前显示的图片
 	private Handler handler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
+			Log.e(TAG, "currentItem: " + currentItem);
 			viewPager.setCurrentItem(currentItem);// 切换当前显示的图片
 		};
 	};
@@ -134,8 +138,10 @@ public class MainActivity extends Activity implements OnClickListener {
       		  WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         powerManager = (PowerManager)(getSystemService(Context.POWER_SERVICE));   
-        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "My Tag");   
-        wakeLock.acquire(); 
+        wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP
+                | PowerManager.ON_AFTER_RELEASE, TAG);  
+        wakeLock.acquire();
         setContentView(R.layout.main);
         ((MyApplication)this.getApplication()).addActivity(this);
         account = this.getIntent().getStringExtra("account");
@@ -211,7 +217,9 @@ public class MainActivity extends Activity implements OnClickListener {
 		registerReceiver(mBroadcastReceiver, new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("LEAVE_INFO"));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("BACK_INFO"));
+		registerReceiver(mBroadcastReceiver, new IntentFilter("TIMEOUT"));
 		
+		annoList = new ArrayList<Announcement>();
 		Thread annoThread = new AnnounThread();
 		annoThread.start();
 		
@@ -265,10 +273,10 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override
 	public void onDestroy() {
 		Log.e(TAG, "onDestory");
-		if(am != null){
-			am.close();
-			//am = null;
-		}
+//		if(am != null){
+//			am.close();
+//			//am = null;
+//		}
 		stopService();
 		((MyApplication)this.getApplication()).setLoginId("");
 		if(mBroadcastReceiver != null)
@@ -330,7 +338,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		public void run() {
 			synchronized (viewPager) {
-				currentItem = (currentItem + 1) % imageViews.size();
+				currentItem = (currentItem + 1) % annoList.size();
 				handler.obtainMessage().sendToTarget(); // 通过Handler切换图片
 			}
 		}
@@ -350,12 +358,25 @@ public class MainActivity extends Activity implements OnClickListener {
 		 * position: Position index of the new selected page.
 		 */
 		public void onPageSelected(int position) {
+			Log.e(TAG, "MyPageChangeListener: " + position);
 			currentItem = position;
 			tv_title.setText(titles[position]);
 			tv_content.setText(contents[position]);
 			dots.get(oldPosition).setBackgroundResource(R.drawable.dot_normal);
 			dots.get(position).setBackgroundResource(R.drawable.dot_focused);
+//			if((position + annoList.size() - 1) % annoList.size() < imageViews.size()) {
+//				ImageView uselessImageView = imageViews.get((position + annoList.size() - 1) % annoList.size());
+//				BitmapDrawable bitmapDrawable = (BitmapDrawable) uselessImageView
+//						.getDrawable();
+//				Bitmap bmp = bitmapDrawable.getBitmap();
+//				if (null != bmp && !bmp.isRecycled()) {
+//					//bmp.recycle();
+//					bmp = null;
+//				}
+//				uselessImageView = null;
+//			}
 			oldPosition = position;
+			Log.e(TAG, "imageViews.size: " + imageViews.size());
 		}
 
 		public void onPageScrollStateChanged(int arg0) {
@@ -394,21 +415,43 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		@Override
 		public int getCount() {
-			return annoList.size();
+			return imageViews.size();
 		}
 
 		@Override
 		public Object instantiateItem(View arg0, int arg1) {
-			if(imageViews != null && imageViews.size() > 0) {
-				((VerticalViewPager) arg0).addView(imageViews.get(arg1));
-				return imageViews.get(arg1);
-			}
-			return null;
+			Log.e(TAG, "instantiateItem:" + arg1);
+			ImageView imageView = new ImageView(MainActivity.this);
+			Bitmap bmp = am.getRoundCornerBitmapByName(annoList.get(arg1).getImageName());
+			if(bmp != null)
+				imageView.setImageBitmap(bmp);
+			imageView.setOnClickListener(new MyViewPagerOnClickListener(
+					annoList.get(arg1).getId()));
+			((VerticalViewPager) arg0).addView(imageView);
+			return imageView;
+//			if (imageViews.size() <= arg1)
+//				imageViews.add(imageView);
+//			else
+//				imageViews.set(arg1, imageView);
+//			if(imageViews != null && imageViews.size() > 0) {
+//				((VerticalViewPager) arg0).addView(imageViews.get(arg1));
+//				return imageViews.get(arg1);
+//			}
+//			return null;
+//			return imageViews.get(arg1);
 		}
 
 		@Override
 		public void destroyItem(View arg0, int arg1, Object arg2) {
-			((VerticalViewPager) arg0).removeView((View) arg2);
+			Log.e(TAG, "destroyItem: " + arg1);
+			//((VerticalViewPager) arg0).removeView((View) arg2);
+			Bitmap bmp = (Bitmap) ((ImageView) arg2).getDrawingCache();
+			if (null != bmp && !bmp.isRecycled()) {
+				bmp.recycle();
+				bmp = null;
+			}
+			arg2 = null;
+			System.gc();
 		}
 
 		@Override
@@ -446,19 +489,27 @@ public class MainActivity extends Activity implements OnClickListener {
 			am = new AnnouncementManager(absolutePath, MainActivity.this);
 			if(user != null)
 				bitmap = am.getBitmapByName(user.getPhotoName());
-			annoList = dba.findAnnouncementsByAccount(account);
+			List<Announcement> allAnnos = dba.findAnnouncementsByAccount(account);
+			for(Announcement ann : allAnnos) {
+				if(afterNow(ann.getOutOfDate(), "yyyy年MM月dd日"))
+					annoList.add(ann);
+			}
 			titles = new String[annoList.size()];
 			contents = new String[annoList.size()];
 			
 			//imageViews = am.getImageViews();
 			for(int i = 0; i < annoList.size(); i++) {
-				ImageView imageView = am.getImageViewByName(annoList.get(i).getImageName());
-				if(!annoList.get(i).getTitle().equals("null"))
+				if (!annoList.get(i).getTitle().equals("null"))
 					titles[i] = annoList.get(i).getTitle();
-				if(!annoList.get(i).getContent().equals("null"))
+				if (!annoList.get(i).getContent().equals("null")) {
 					contents[i] = annoList.get(i).getContent();
-				imageView.setOnClickListener(new MyViewPagerOnClickListener(i));
-				imageViews.add(imageView);
+				}
+//				ImageView imageView = new ImageView(MainActivity.this);
+//				if(annoList.get(i).getImageName() != null && !annoList.get(i).getImageName().equals("null")) {
+//					imageView.setImageBitmap(am.getRoundCornerBitmapByName(annoList.get(i).getImageName()));
+//				}
+//				imageView.setOnClickListener(new MyViewPagerOnClickListener(annoList.get(i).getId()));
+//				imageViews.add(imageView);
 			}
 			
 			if(dba != null)
@@ -469,11 +520,6 @@ public class MainActivity extends Activity implements OnClickListener {
 	private class AnnounHandler extends Handler {
 		@Override
 		public void handleMessage(Message msg) {
-			if(scheduledExecutorService == null) {
-				scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-				// 当Activity显示出来后，每两秒钟切换一次图片显示
-				scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
-			}
 			viewPager.setAdapter(new MyAdapter());// 设置填充ViewPager页面的适配器
 			// 设置一个监听器，当ViewPager中的页面改变时调用
 			viewPager.setOnPageChangeListener(new MyPageChangeListener());
@@ -501,10 +547,16 @@ public class MainActivity extends Activity implements OnClickListener {
 				dots.add(dot);
 				dotsLayout.addView(dot, i);
 			}
+			dots.get(0).setBackgroundResource(R.drawable.dot_focused);
 			//dotsLayout.addChildrenForAccessibility(dots);
 			
 			for(int i = 0; i < dots.size(); i++) {
 				dots.get(i).setOnClickListener(new MyDotClickListener(i));
+			}
+			if(scheduledExecutorService == null) {
+				scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+				// 当Activity显示出来后，每两秒钟切换一次图片显示
+				scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 			}
 			//设置按钮功能实现
 			LayoutInflater inflater = LayoutInflater.from(MainActivity.this);  
@@ -593,7 +645,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 
 		@Override
-		public void onReceive(Context arg0, Intent intent) {
+		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
 			if(intent.getAction().equals(UsbManager.ACTION_USB_ACCESSORY_DETACHED)) {
 	        	Log.e(TAG, "ACTION_USB_ACCESSORY_DETACHED");
@@ -621,6 +673,29 @@ public class MainActivity extends Activity implements OnClickListener {
 	    			// 当Activity显示出来后，每两秒钟切换一次图片显示
 	    			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 	    		}
+	        }else if(intent.getAction().equals("TIMEOUT")) {
+	        	if(scheduledExecutorService != null) {
+	    			scheduledExecutorService.shutdown();
+	    			scheduledExecutorService = null;
+	    			//activityOver = false;
+	    		}
+	        	Toast.makeText(MainActivity.this, "Socket timeout", Toast.LENGTH_SHORT).show();
+//	        	if (wakeLock != null && wakeLock.isHeld()) {
+//	        		wakeLock.release();
+//	        		wakeLock = null;
+//	            }
+	        	Log.e(TAG, "time out,release wake lock");
+//	        	if(wakeLock == null) {
+//		        	wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "My Tag");
+//		        	wakeLock.acquire();
+//	        	}
+//	        	wakeLock.release();
+//	        	wakeLock = null;
+//	        	if(powerManager != null) {
+//	        		powerManager.goToSleep(100);
+//	        	}
+	        	Intent emptyIntent = new Intent(MainActivity.this, EmptyActivity.class);
+	        	context.startActivity(emptyIntent);
 	        }else{
 	        	Toast.makeText(MainActivity.this, "Received unexpected intent " + intent.toString(), Toast.LENGTH_SHORT).show();
 	        	Log.e(TAG, "Received unexpected intent " + intent.toString());
@@ -665,14 +740,18 @@ public class MainActivity extends Activity implements OnClickListener {
 			case 2:
 				url = "GscSupport.svc/JobStatements?loginId=" + loginId;
 				data = am.getData("content", url);
-				if(data != null)
+				if(data != null){
 		            intent.putExtra("content", data);
+		            intent.putExtra("title", "岗位职责");
+				}
 				break;
 			case 3:
 				url = "GscSupport.svc/ServicePromises?loginId=" + loginId;
 				data = am.getData("content", url);
-				if(data != null)
+				if(data != null){
 		            intent.putExtra("content", data);
+		            intent.putExtra("title", "服务承诺");
+				}
 				break;
 			case 4:
 				Intent i = new Intent(MainActivity.this, InfoCenterActivity.class);
@@ -690,5 +769,19 @@ public class MainActivity extends Activity implements OnClickListener {
 			}
             MainActivity.this.startActivity(intent);
 		}
+	}
+	//
+	private boolean afterNow(String date, String dateFormat) {
+		Date time=new Date();
+		SimpleDateFormat sd=new SimpleDateFormat(dateFormat);
+		try {
+			time = sd.parse(date);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.e(TAG, "输入的日期格式有误");
+			return false;
+		}
+		return time.after(new Date());
 	}
 }

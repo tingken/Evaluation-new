@@ -63,7 +63,7 @@ public class InfoDetailActivity extends Activity {
 			}
 		});
         if(currentItem >= 0) {
-	        Announcement anno = dba.findAnnouncementsByAccount(account).get(currentItem);
+	        Announcement anno = dba.findAnnouncementsById(currentItem);
 	        titleView = (TextView) findViewById(R.id.title);
 	        if(anno.getTitle() != null && !anno.getTitle().equals("null"))
 	        titleView.setText(anno.getTitle());
