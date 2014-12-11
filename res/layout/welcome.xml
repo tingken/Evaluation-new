@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:orientation="horizontal"
+android:background="@drawable/welcome_bg"
+android:id="@+id/welcome_layout"
+android:gravity="center_vertical|center_horizontal">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:orientation="vertical" >
+
+
+        
+        <TextView
+            android:id="@+id/editText1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="450px"
+            android:text="欢迎进入..."
+            android:textColor="#ffffff"
+            android:textSize="20px" />
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

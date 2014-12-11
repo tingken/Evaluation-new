@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>  
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"  
+    android:layout_width="fill_parent"  
+    android:layout_height="fill_parent"  
+    android:background="@drawable/login_bg"
+    android:screenOrientation="nosensor"
+    android:gravity="center"
+    android:orientation="vertical" >
+
+	<RelativeLayout
+		android:layout_width="422px"
+		android:layout_height="500px"
+		android:layout_marginTop="40px"
+		android:background="@drawable/login_bottom" >
+		<LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:orientation="vertical" >
+			
+		    <RelativeLayout
+		        android:layout_width="198px" 
+		        android:layout_height="49px"
+				android:layout_marginTop="134px"
+				android:layout_marginLeft="6px"
+		        android:background="@null">
+		        <EditText
+				android:id="@+id/et_zh"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:layout_marginLeft="15px"
+				android:textSize="18sp"
+				android:hint="用户名"
+				android:background="@null"
+				android:textColor="#ffffff"/>
+				<Button
+				android:id="@+id/select"
+				android:layout_width="34px"
+				android:layout_height="34px"
+				android:layout_marginRight="15px"
+				android:background="@drawable/select_down"
+				android:layout_alignBaseline="@id/et_zh"
+				android:layout_alignRight="@id/et_zh"
+				>
+				</Button>
+		    </RelativeLayout>
+	        
+			<RelativeLayout
+		        android:layout_width="198px" 
+		        android:layout_height="48px"
+		        android:layout_marginLeft="6px"
+				android:layout_marginTop="9px"
+		        android:background="@null">
+	        	<EditText
+		            android:id="@+id/et_mima"
+		            android:layout_width="fill_parent"
+		            android:layout_height="fill_parent"
+		            android:layout_marginLeft="15px"
+		            android:background="@null"
+		            android:hint="密码"
+		            android:textColor="#ffffff"
+		            android:maxLines="200"
+		            android:password="true" />
+			</RelativeLayout>
+	        <CheckBox
+	            android:id="@+id/cb_mima"
+	            android:layout_width="20px"
+	            android:layout_height="20px"
+	            android:layout_marginTop="14px"
+	            android:layout_marginLeft="6px"
+	            style="@style/LoginCheckboxTheme" />
+	        
+	        <Button
+	            android:id="@+id/btn_login"
+	            android:layout_width="211px"
+	            android:layout_height="64px"
+	            android:layout_gravity="center"
+	            android:layout_marginTop="24px"
+	            android:background="@drawable/login_btn_selector" />
+	        </LinearLayout>
+	</RelativeLayout>
+</LinearLayout>

@@ -1,0 +1,54 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="73px"
+        android:background="@drawable/tab" >
+        <ImageButton
+            android:id="@+id/back"
+            android:layout_width="78dp"
+            android:layout_height="66dp"
+            android:src="@drawable/btn_back"
+            android:background="@drawable/back_selector"
+            android:layout_toLeftOf="@+id/time" />
+
+        <TextView
+            android:layout_width="102dp"
+            android:layout_height="fill_parent"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/dateweek"
+            android:id="@+id/time"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp" />
+        <LinearLayout
+            android:layout_width="110dp"
+			android:layout_height="fill_parent"
+			android:id="@+id/dateweek"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentTop="true"
+			android:gravity="center"
+			android:orientation="vertical" >
+	        <TextView
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:id="@+id/week"
+	            android:gravity="center"
+	            android:textColor="#FFFFFF"
+	            android:textSize="20sp" />
+	        <TextView
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:id="@+id/date"
+	            android:gravity="center"
+	            android:textColor="#FFFFFF"
+	            android:textSize="20sp" />
+		</LinearLayout>
+	</RelativeLayout>
+	<WebView 
+	    android:layout_width="fill_parent"
+    	android:layout_height="fill_parent"
+    	android:id="@+id/webView"/>
+</LinearLayout>

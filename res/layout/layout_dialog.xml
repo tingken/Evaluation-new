@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+ xmlns:android="http://schemas.android.com/apk/res/android"
+   android:orientation="vertical"
+   android:layout_width="fill_parent"
+   android:layout_height="fill_parent"
+   android:background="@drawable/pp_bg_dialog"
+   android:gravity="center">
+         
+     <TextView android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="5dp"
+         android:text="工作人员暂时离开"
+         android:textSize="36sp"
+         android:textColor="#c61820"/>
+     <TextView android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="10dp"
+         android:text="请稍等..."
+         android:textSize="36sp"
+         android:textColor="#c61820"/>
+</LinearLayout>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+    <com.evaluation.util.PageControl
+        android:id="@+id/TableLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dip"
+        android:shrinkColumns="0,1,2,3,4,5,6,7,8"
+        android:stretchColumns="0,1,2,3,4,5,6,7" >
+ 
+        <TableRow>
+ 
+            <Button
+                android:id="@+id/first_page"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="|&lt;"
+                android:textSize="18sp" />
+ 
+            <Button
+                android:id="@+id/page_up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" &lt; "
+                android:textSize="18sp" />
+ 
+            <Button
+                android:id="@+id/page_down"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" &gt; "
+                android:textSize="18sp" />
+ 
+            <Button
+                android:id="@+id/last_page"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&gt;|"
+                android:textSize="18sp" />
+            
+            <TextView
+                android:id="@+id/current_page"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前页"
+                android:gravity="center"
+                android:textColor="#000000"
+                android:textSize="18sp" />
+            
+            <TextView
+                android:id="@+id/total_page"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="40dip"
+                android:singleLine="true"
+                android:text="总页数"
+                android:textColor="#000000"
+                android:textSize="18sp" />
+        </TableRow>
+    </com.evaluation.util.PageControl>
+</merge>
