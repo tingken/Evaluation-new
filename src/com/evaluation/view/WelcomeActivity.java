@@ -24,18 +24,21 @@ import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class WelcomeActivity extends Activity implements AnimationListener {
 	private LinearLayout layout = null;
 	private Animation alphaAnimation = null;
 	private SharedPreferences sp;
+	private TextView welcomeTextView;
 	private String account;
 	private String loginId;
 	private String result = "";
 	private String TAG = "effort";
 	private String assetsApk = "SpeechService.apk";
 	private DatabaseAdapter dba;
+	private boolean activityOver = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,13 +50,14 @@ public class WelcomeActivity extends Activity implements AnimationListener {
 		
 		setContentView(R.layout.welcome);
 		((MyApplication)this.getApplication()).addActivity(this);
-		layout = (LinearLayout) findViewById(R.id.welcome_layout);
-		alphaAnimation = AnimationUtils.loadAnimation(this,
-				R.anim.welcome_alpha);
-		alphaAnimation.setFillEnabled(true); // 启动Fill保持
-		alphaAnimation.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
-		layout.setAnimation(alphaAnimation);
-		alphaAnimation.setAnimationListener(this); // 为动画设置监听
+		welcomeTextView = (TextView) findViewById(R.id.textView1);
+//		layout = (LinearLayout) findViewById(R.id.welcome_layout);
+//		alphaAnimation = AnimationUtils.loadAnimation(this,
+//				R.anim.welcome_alpha);
+//		alphaAnimation.setFillEnabled(true); // 启动Fill保持
+//		alphaAnimation.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
+//		layout.setAnimation(alphaAnimation);
+//		alphaAnimation.setAnimationListener(this); // 为动画设置监听
 		
 		//获得实例对象  
         sp = this.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
@@ -61,6 +65,14 @@ public class WelcomeActivity extends Activity implements AnimationListener {
         dba = new DatabaseAdapter(this);
 		dba.open();
         init();
+        Thread welcomeThread = new WelcomeThread();
+        welcomeThread.start();
+	}
+	
+	@Override
+	protected void onStop() {
+		activityOver = true;
+		super.onStop();
 	}
 
 	@Override
@@ -141,17 +153,17 @@ public class WelcomeActivity extends Activity implements AnimationListener {
 
 		@Override
 		public void handleMessage(Message msg) {
-//			layout = (LinearLayout) findViewById(R.id.welcome_layout);
-//			alphaAnimation = AnimationUtils.loadAnimation(WelcomeActivity.this,
-//					R.anim.welcome_alpha);
-//			alphaAnimation.setFillEnabled(true); // 启动Fill保持
-//			alphaAnimation.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
-//			layout.setAnimation(alphaAnimation);
-//			alphaAnimation.setAnimationListener(WelcomeActivity.this); // 为动画设置监听
+			layout = (LinearLayout) findViewById(R.id.welcome_layout);
+			alphaAnimation = AnimationUtils.loadAnimation(WelcomeActivity.this,
+					R.anim.welcome_alpha);
+			alphaAnimation.setFillEnabled(true); // 启动Fill保持
+			alphaAnimation.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
+			layout.setAnimation(alphaAnimation);
+			alphaAnimation.setAnimationListener(WelcomeActivity.this); // 为动画设置监听
 			result = msg.obj.toString();
 			if (result.equals("success")) {
-				Toast.makeText(WelcomeActivity.this, "登录成功", Toast.LENGTH_SHORT)
-						.show();
+//				Toast.makeText(WelcomeActivity.this, "登录成功", Toast.LENGTH_SHORT)
+//						.show();
 				// 跳转界面
 				Intent intent = new Intent(WelcomeActivity.this,
 						MainActivity.class);
@@ -166,6 +178,52 @@ public class WelcomeActivity extends Activity implements AnimationListener {
 						LoginActivity.class);
 				startActivity(intent);
 				finish();
+			}
+		}
+	}
+	private class WelcomeThread extends Thread{
+    	public void run() { 
+    		Handler mHandler = new WelcomeHandler(Looper.getMainLooper());
+    		int i = 0;
+    		while(!activityOver) {
+    			i++;
+    			try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    			switch(i%3) {
+    			case 0:
+    				mHandler.sendEmptyMessage(1);
+    				break;
+    			case 1:
+    				mHandler.sendEmptyMessage(2);
+    				break;
+    			case 2:
+    				mHandler.sendEmptyMessage(3);
+    				break;
+    			}
+    		}
+    	}
+	}
+	private class WelcomeHandler extends Handler {
+		public WelcomeHandler(Looper looper) {
+			super(looper);
+		}
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch(msg.what) {
+			case 1:
+				welcomeTextView.setText(" .");
+				break;
+			case 2:
+				welcomeTextView.setText(" ..");
+				break;
+			case 3:
+				welcomeTextView.setText(" ...");
+				break;
 			}
 		}
 	}

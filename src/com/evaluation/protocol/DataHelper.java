@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.evaluationo.protocol;
+package com.evaluation.protocol;
 
 import java.io.IOException;
 import java.io.InputStream;

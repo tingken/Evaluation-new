@@ -8,6 +8,7 @@ import com.evaluation.model.User;
 import com.evaluation.util.DeletableAdapter;
 
 import android.app.Activity; 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;  
@@ -25,14 +26,19 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;  
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;  
 import android.widget.CompoundButton;  
 import android.widget.CompoundButton.OnCheckedChangeListener;  
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
+import android.widget.TextView;
 import android.widget.Toast;  
   
 public class LoginActivity extends Activity {
@@ -42,15 +48,20 @@ public class LoginActivity extends Activity {
 	private CheckBox rem_pw;
 	private Button select;
 	private Button btn_login;
-	private ProgressDialog logining;
+	private Dialog logining;
 	private String accountValue, passwordValue;
 	private SharedPreferences sp;
 	private AccountManager accountManager;
 	private String loginId;
+	private int autoLogin = 0;
+	//private Thread autoLoginThread = new AutoLoginThread();
 	private Thread m_Thread;
 	private String TAG = "effort";
 	private boolean isLogining = false;
 	private DatabaseAdapter dba;
+
+	private String DISCONNECT = "DISCONNECT";
+	private String WRONGPW = "WRONGPW";
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -61,6 +72,7 @@ public class LoginActivity extends Activity {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.login);
 		((MyApplication)this.getApplication()).addActivity(this);
+		((MyApplication)this.getApplication()).setEvaluatable(true);
 
 		LayoutInflater inflater = LayoutInflater.from(this);
 		// 引入窗口配置文件
@@ -83,13 +95,17 @@ public class LoginActivity extends Activity {
 		btn_login.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
+				((MyApplication)LoginActivity.this.getApplication()).setEvaluatable(false);
 				isLogining = true;
-				logining = new ProgressDialog(LoginActivity.this);
-				logining.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				//logining.setTitle("提示");
-				logining.setMessage("正在登陆");
-				//logining.setIcon(R.drawable.logo);
-				logining.setIndeterminate(true);
+//				logining = new ProgressDialog(LoginActivity.this);
+//				logining.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+//				//logining.setTitle("提示");
+//				logining.setMessage("正在登录");
+//				//logining.setIcon(R.drawable.logo);
+//				logining.setIndeterminate(true);
+//				logining.setCanceledOnTouchOutside(false);
+//				logining.show();
+				logining = createLoadingDialog(LoginActivity.this, "正在登录");
 				logining.setCanceledOnTouchOutside(false);
 				logining.show();
 				login();
@@ -137,7 +153,7 @@ public class LoginActivity extends Activity {
 				} else {
 					// 显示窗口
 					select.setBackgroundResource(R.drawable.select_up);
-					pop.showAsDropDown(v, -162, 0);
+					pop.showAsDropDown(v, -167, -10);
 				}
 			}
 		});
@@ -170,13 +186,23 @@ public class LoginActivity extends Activity {
 			user.setPassword(passwordValue);
 			//accountManager = new AccountManager(LoginActivity.this);
 			loginId = accountManager.login(user);
-			if (loginId != null) {
-				msg = "success";
+			if (loginId == null) {
+				msg = "fail";
 				mHandler.removeMessages(0);
-				Message m = mHandler.obtainMessage(1, 1, 1, "success");
+				Message m = mHandler.obtainMessage(1, 1, 1, msg);
+				mHandler.sendMessage(m);
+			} else if(loginId.equals(DISCONNECT)) {
+				msg = DISCONNECT;
+				mHandler.removeMessages(0);
+				Message m = mHandler.obtainMessage(1, 1, 1, msg);
+				mHandler.sendMessage(m);
+			} else if(loginId.equals(WRONGPW)) {
+				msg = WRONGPW;
+				mHandler.removeMessages(0);
+				Message m = mHandler.obtainMessage(1, 1, 1, msg);
 				mHandler.sendMessage(m);
 			} else {
-				msg = "fail";
+				msg = "success";
 				mHandler.removeMessages(0);
 				Message m = mHandler.obtainMessage(1, 1, 1, msg);
 				mHandler.sendMessage(m);
@@ -193,7 +219,8 @@ public class LoginActivity extends Activity {
 		public void handleMessage(Message msg) {
 			String value = msg.obj.toString();
 			if (value.equals("success")) {
-				dba.close();
+				((MyApplication)LoginActivity.this.getApplication()).setEvaluatable(true);
+				//dba.close();
 //				Toast.makeText(LoginActivity.this,"登录成功",
 //				Toast.LENGTH_SHORT).show();
 				
@@ -214,12 +241,28 @@ public class LoginActivity extends Activity {
 				intent.putExtra("loginId", "");
 				LoginActivity.this.startActivity(intent);
 				finish();
+			}else if(value.equals(DISCONNECT)) {
+				Toast.makeText(LoginActivity.this, "没有连接网络",
+						Toast.LENGTH_LONG).show();
+				logining.setTitle("没有连接网络");
+				logining.dismiss();
+				autoLogin = 0;
+			}else if(value.equals(WRONGPW)) {
+				Toast.makeText(LoginActivity.this, "密码错误，请重新输入正确密码",
+						Toast.LENGTH_LONG).show();
+				logining.setTitle("密码错误");
+				logining.dismiss();
+				autoLogin = 0;
 			}else {
+				//((MyApplication)LoginActivity.this.getApplication()).setEvaluatable(true);
 				Toast.makeText(LoginActivity.this, "用户名或密码错误，请重新登录",
 						Toast.LENGTH_LONG).show();
 				logining.setTitle("用户名或密码错误");
 				logining.dismiss();
+				autoLogin = 0;
 				isLogining = false;
+				Thread autoLoginThread = new AutoLoginThread();
+				autoLoginThread.start();
 			}
 		}
 	}
@@ -243,27 +286,64 @@ public class LoginActivity extends Activity {
 	protected void onDestroy() {
 		dba.close();
 		accountManager.close();
+		logining.dismiss();
 		super.onDestroy();
 	}
 	
 	private class AutoLoginThread extends Thread {
 		public void run() {
-			try {
-				Thread.sleep(45 * 1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if(!isLogining) {
-				Handler mHandler = new LoginHandler(Looper.getMainLooper());
-				User user = new User();
-				user.setAccount("<null>");
-				accountManager.autoLogin(user);
-				String msg = "emptyAutoLogin";
-				mHandler.removeMessages(0);
-				Message m = mHandler.obtainMessage(1, 1, 1, msg);
-				mHandler.sendMessage(m);
+			while(!isLogining) {
+				autoLogin++;
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(autoLogin % 200 == 0) {
+					((MyApplication)LoginActivity.this.getApplication()).setEvaluatable(false);
+					Handler mHandler = new LoginHandler(Looper.getMainLooper());
+					User user = new User();
+					user.setAccount("<null>");
+					accountManager.autoLogin(user);
+					String msg = "emptyAutoLogin";
+					mHandler.removeMessages(0);
+					Message m = mHandler.obtainMessage(1, 1, 1, msg);
+					mHandler.sendMessage(m);
+					isLogining = true;
+					autoLogin = 0;
+				}
 			}
 		}
 	}
+	/** 
+     * 得到自定义的progressDialog 
+     * @param context 
+     * @param msg 
+     * @return 
+     */  
+    public static Dialog createLoadingDialog(Context context, String msg) {  
+  
+        LayoutInflater inflater = LayoutInflater.from(context);  
+        View v = inflater.inflate(R.layout.loading_dialog, null);// 得到加载view  
+        LinearLayout layout = (LinearLayout) v.findViewById(R.id.dialog_view);// 加载布局  
+        // main.xml中的ImageView  
+        ImageView spaceshipImage = (ImageView) v.findViewById(R.id.img);  
+        TextView tipTextView = (TextView) v.findViewById(R.id.tipTextView);// 提示文字  
+        // 加载动画  
+        Animation hyperspaceJumpAnimation = AnimationUtils.loadAnimation(  
+                context, R.anim.loading_animation);  
+        // 使用ImageView显示动画  
+        spaceshipImage.startAnimation(hyperspaceJumpAnimation);  
+        tipTextView.setText(msg);// 设置加载信息  
+  
+        Dialog loadingDialog = new Dialog(context, R.style.Theme_dialog);// 创建自定义样式dialog  
+  
+        loadingDialog.setCancelable(false);// 不可以用“返回键”取消  
+        loadingDialog.setContentView(layout, new LinearLayout.LayoutParams(  
+                LinearLayout.LayoutParams.FILL_PARENT,  
+                LinearLayout.LayoutParams.FILL_PARENT));// 设置布局  
+        return loadingDialog;  
+  
+    }
 }

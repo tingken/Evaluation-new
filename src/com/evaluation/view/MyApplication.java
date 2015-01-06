@@ -3,6 +3,7 @@ package com.evaluation.view;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.evaluation.util.CrashHandler;
 import com.evaluation.util.TcpConnect;
 
 import android.app.Activity;
@@ -14,9 +15,10 @@ import android.util.Log;
 
 public class MyApplication extends Application {
 	private List<Activity> mList = new LinkedList<Activity>(); 
-	private TcpConnect iTCPConnect = null;
+//	private TcpConnect iTCPConnect = null;
 	private int value = 0;
 	private boolean statu = false;
+	private boolean evaluatable = false;
 	private String account = "";
 	private String loginId = "";
 	private String TAG = "effort";
@@ -24,8 +26,10 @@ public class MyApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 		Log.e(TAG, "myApplication.onCreate");
-		iTCPConnect = new TcpConnect(this);
-        iTCPConnect.start();
+		CrashHandler crashHandler = CrashHandler.getInstance();  
+        crashHandler.init(this);
+//		iTCPConnect = new TcpConnect(this);
+//        iTCPConnect.start();
 	}
 	public int getValue() {
 		return value;
@@ -40,6 +44,12 @@ public class MyApplication extends Application {
 	}
 	public void setStatu(boolean statu) {
 		this.statu = statu;
+	}
+	public boolean isEvaluatable() {
+		return evaluatable;
+	}
+	public void setEvaluatable(boolean evaluatable) {
+		this.evaluatable = evaluatable;
 	}
 	public String getAccount() {
 		return account;
@@ -63,8 +73,8 @@ public class MyApplication extends Application {
                 if (activity != null) 
                     activity.finish();
             }
-            if(iTCPConnect != null)
-            	iTCPConnect.Close();
+//            if(iTCPConnect != null)
+//            	iTCPConnect.Close();
         } catch (Exception e) { 
             e.printStackTrace(); 
         } finally { 

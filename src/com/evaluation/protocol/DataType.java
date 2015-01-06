@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.evaluationo.protocol;
+package com.evaluation.protocol;
 
 /**
  * @author ahanqiankun@aliyun.com

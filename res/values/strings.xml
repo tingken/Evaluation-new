@@ -9,4 +9,6 @@
     <string name="update">查看更新</string>
     <string name="announcement_title">铸就民族复兴中国梦</string>
     <string name="announcement_content">凝心聚力抓发展，同心共筑中国梦\n实现伟大中国梦，建设美丽繁荣和谐四川</string>
+    <color name="touched">#dddd00</color>
+    <color name="untouched">#000000</color>
 </resources>

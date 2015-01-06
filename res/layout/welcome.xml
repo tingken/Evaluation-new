@@ -16,18 +16,26 @@ android:gravity="center_vertical|center_horizontal">
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:gravity="center"
-            android:orientation="vertical" >
-
-
-        
-        <TextView
-            android:id="@+id/editText1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="450px"
-            android:text="欢迎进入..."
-            android:textColor="#ffffff"
-            android:textSize="20px" />
+            android:orientation="vertical">
+            <LinearLayout
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+		        android:layout_marginTop="450px"
+	            android:orientation="horizontal">"
+		  		<TextView
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:text="欢迎进入"
+		            android:textColor="#ffffff"
+		            android:textSize="20px" />
+		        <TextView
+		            android:id="@+id/textView1"
+		            android:layout_width="25px"
+		            android:layout_height="wrap_content"
+		            android:text=" ."
+		            android:textColor="#ffffff"
+		            android:textSize="20px" />
+        	</LinearLayout>
         </LinearLayout>
     </RelativeLayout>
 </LinearLayout>

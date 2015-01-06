@@ -12,10 +12,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.evaluation.model.Announcement;
+import com.evaluation.util.Utils;
+import com.evaluation.view.BuildConfig;
 import com.evaluation.view.MainActivity;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -26,6 +29,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
@@ -34,6 +38,22 @@ public class AnnouncementManager {
 	private Announcement announce;
 	private String dirPath;
 	private Context context;
+	private LruCache<String, Bitmap> mMemoryCache;
+	// Default memory cache size
+    private static final int DEFAULT_MEM_CACHE_SIZE = 1024 * 1024 * 2; // 2MB
+
+    // Default disk cache size
+    private static final int DEFAULT_DISK_CACHE_SIZE = 1024 * 1024 * 10; // 10MB
+
+    // Compression settings when writing images to disk cache
+    private static final CompressFormat DEFAULT_COMPRESS_FORMAT = CompressFormat.JPEG;
+    private static final int DEFAULT_COMPRESS_QUALITY = 70;
+
+    // Constants to easily toggle various caches
+    private static final boolean DEFAULT_MEM_CACHE_ENABLED = true;
+    private static final boolean DEFAULT_DISK_CACHE_ENABLED = true;
+    private static final boolean DEFAULT_CLEAR_DISK_CACHE_ON_START = false;
+	
 	//private Bitmap bitmap = null;
 	private String TAG = "effort";
 	public static int annWidth = 500, annHeight = 300, picWidth = 133, picHeight = 203;
@@ -41,6 +61,25 @@ public class AnnouncementManager {
 	public AnnouncementManager(String dirPath, Context context) {
 		this.dirPath = dirPath;
 		this.context = context;
+		mMemoryCache = new LruCache<String, Bitmap>(DEFAULT_MEM_CACHE_SIZE) {
+            /**
+             * Measure item size in bytes rather than units which is more practical for a bitmap
+             * cache
+             */
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap) {
+                return Utils.getBitmapSize(bitmap);
+            }
+            @Override
+			protected void entryRemoved(boolean evicted, String key,
+					Bitmap oldValue, Bitmap newValue) {
+				if (evicted && oldValue != null && !oldValue.isRecycled()) {
+					Log.e(TAG, "recycle bitmap: " + key);
+					oldValue.recycle();
+					oldValue = null;
+				}
+			}
+        };
 	}
 	
 	public Map<String, String> getContent(String path, int userId) {
@@ -90,7 +129,7 @@ public class AnnouncementManager {
 		return bitmap;
 	}
 		
-	public Bitmap getRoundCornerBitmapByName(String fileName) {
+	public Bitmap getRoundCornerBitmapByName(int index, String fileName) {
 		//ImageView imageView = new ImageView(context);
 		Bitmap bitmap = null;
 		File file = new File(dirPath + "/" + fileName);
@@ -111,6 +150,7 @@ public class AnnouncementManager {
 	         	System.gc();  //提醒系统及时回收 
 			}
         }
+        addBitmapToCache(fileName+index, bitmap);
         return bitmap;
 	}
 	
@@ -216,6 +256,8 @@ public class AnnouncementManager {
 	}
 
 	public void inputstream2file(InputStream ins, String fileName) {
+		if(fileName == null || fileName.trim().equals(""))
+			return;
 		File file = new File(dirPath, fileName);
 		try {
 			OutputStream os = new FileOutputStream(file);
@@ -276,4 +318,69 @@ public class AnnouncementManager {
 //         	System.gc();  //提醒系统及时回收 
 //		}
 //	}
+	public void addBitmapToCache(String data, Bitmap bitmap) {
+		if (data == null || bitmap == null) {
+			return;
+		}
+
+		// Add to memory cache
+		if (mMemoryCache != null && mMemoryCache.get(data) == null) {
+			mMemoryCache.put(data, bitmap);
+		}
+	}
+	public Bitmap getBitmapFromMemCache(int index, String key) {
+  //      if (mMemoryCache != null) {
+            final Bitmap memBitmap = mMemoryCache.get(key+index);
+            if (memBitmap != null && !memBitmap.isRecycled()) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Memory cache hit");
+                }
+                return memBitmap;
+            }else {
+            	return getRoundCornerBitmapByName(index, key);
+            }
+ //       }
+    }
+	/**
+     * 移除缓存
+     * 
+     * @param key
+     */
+    public synchronized void removeImageCache(int index, String key) {
+        if (key != null) {
+            if (mMemoryCache != null) {
+                Bitmap bm = mMemoryCache.remove(key+index);
+                if (bm != null)
+                    bm.recycle();
+            }
+        }
+    }
+	public void clearCaches() {
+		if (mMemoryCache != null) {
+            if (mMemoryCache.size() > 0) {
+                Log.d("CacheUtils",
+                        "mMemoryCache.size() " + mMemoryCache.size());
+                mMemoryCache.evictAll();
+                Log.d("CacheUtils", "mMemoryCache.size()" + mMemoryCache.size());
+            }
+            mMemoryCache = null;
+        }
+    }
+	/**
+     * A holder class that contains cache parameters.
+     */
+    public static class ImageCacheParams {
+        public String uniqueName;
+        public int memCacheSize = DEFAULT_MEM_CACHE_SIZE;
+        public int diskCacheSize = DEFAULT_DISK_CACHE_SIZE;
+        public CompressFormat compressFormat = DEFAULT_COMPRESS_FORMAT;
+        public int compressQuality = DEFAULT_COMPRESS_QUALITY;
+        public boolean memoryCacheEnabled = DEFAULT_MEM_CACHE_ENABLED;
+        public boolean diskCacheEnabled = DEFAULT_DISK_CACHE_ENABLED;
+        public boolean clearDiskCacheOnStart = DEFAULT_CLEAR_DISK_CACHE_ON_START;
+
+        public ImageCacheParams(String uniqueName) {
+            this.uniqueName = uniqueName;
+        }
+    }
 }

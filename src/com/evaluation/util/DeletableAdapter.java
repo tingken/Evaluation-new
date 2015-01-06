@@ -15,6 +15,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
  
+import com.evaluation.control.AccountManager;
 import com.evaluation.model.User;
 import com.evaluation.view.R;
  
@@ -81,10 +82,12 @@ public class DeletableAdapter extends BaseAdapter {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
+				AccountManager accountManager = new AccountManager(context);
+				accountManager.deleteUserByAccount(userList.get(index).getAccount());
 				userList.remove(index);
 				notifyDataSetChanged();
-				Toast.makeText(context, textView.getText().toString(),
-						Toast.LENGTH_SHORT).show();
+//				Toast.makeText(context, textView.getText().toString(),
+//						Toast.LENGTH_SHORT).show();
 			}
 		});
 		return view;

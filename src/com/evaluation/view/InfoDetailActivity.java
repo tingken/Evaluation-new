@@ -7,12 +7,19 @@ import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.model.Announcement;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.GestureDetector.OnGestureListener;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -21,7 +28,7 @@ import android.webkit.WebViewClient;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class InfoDetailActivity extends Activity {
+public class InfoDetailActivity extends Activity implements OnGestureListener {
 	private int currentItem;
 	private DatabaseAdapter dba;
 	private List<Announcement> annoList;
@@ -38,6 +45,11 @@ public class InfoDetailActivity extends Activity {
 	private TextView contentView;
 	private String TAG = "effort";
 	private boolean activityOver = false;
+	// 手指在屏幕上移动距离小于此值不会被认为是手势
+	private static final int SWIPE_MIN_DISTANCE = 60;
+	// 手指在屏幕上移动速度小于此值不会被认为手势
+	private static final int SWIPE_THRESHOLD_VELOCITY = 100;
+	private GestureDetector gd;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +61,7 @@ public class InfoDetailActivity extends Activity {
 		dba = new DatabaseAdapter(this);
 		dba.open();
 		annoList = dba.findAnnouncementsByAccount(account);
+        gd = new GestureDetector(this);
         dateView = (TextView) findViewById(R.id.date);
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
@@ -66,7 +79,7 @@ public class InfoDetailActivity extends Activity {
 	        Announcement anno = dba.findAnnouncementsById(currentItem);
 	        titleView = (TextView) findViewById(R.id.title);
 	        if(anno.getTitle() != null && !anno.getTitle().equals("null"))
-	        titleView.setText(anno.getTitle());
+	        	titleView.setText(anno.getTitle());
 	    	repDateView = (TextView) findViewById(R.id.rep_date);
 	    	if(anno.getRepDate() != null && !anno.getRepDate().equals("null"))
 	    		repDateView.setText(anno.getRepDate());
@@ -77,6 +90,8 @@ public class InfoDetailActivity extends Activity {
     	dba.close();
 		Thread dateThread = new DateThread();
 		dateThread.start();
+		registerReceiver(mBroadcastReceiver, new IntentFilter("TIMEOUT"));
+		registerReceiver(mBroadcastReceiver, new IntentFilter("LEAVE_INFO"));
     }
  // 设置标题上的时间
  	private Handler dateHandler = new Handler() {
@@ -126,12 +141,126 @@ public class InfoDetailActivity extends Activity {
 	@Override
 	protected void onStop() {
 		// 当Activity不可见的时候停止切换
-		activityOver = false;
+		activityOver = true;
 		super.onStop();
 	}
 	@Override
 	protected void onDestroy() {
 		Log.e(TAG, "onDestroy");
+		if(mBroadcastReceiver != null)
+			this.unregisterReceiver(mBroadcastReceiver);
 		super.onDestroy();
+	}
+	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			if(intent.getAction().equals("TIMEOUT")) {
+	        	Log.e(TAG, "TIMEOUT");
+	        	//Toast.makeText(EvaluationActivity.this, "HEART_BEAT", Toast.LENGTH_SHORT).show();
+	        	InfoDetailActivity.this.finish();
+	        } else if(intent.getAction().equals("LEAVE_INFO")) {
+	        	InfoDetailActivity.this.finish();
+	        }
+		}
+	};
+
+	/**
+     * 覆写此方法，以解决ListView滑动被屏蔽问题
+     */
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent event) {
+	        this.gd.onTouchEvent(event);
+	        return super.dispatchTouchEvent(event);
+	}
+
+	/**
+	 * 覆写此方法，以使用手势识别
+	 */
+	@Override  
+	public boolean onTouchEvent(MotionEvent event) {
+	    Log.v(TAG, "onTouchEvent");
+	    return this.gd.onTouchEvent(event);
+	}
+	
+	@Override
+	public boolean onDown(MotionEvent arg0) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+			float velocityY) {
+		// TODO Auto-generated method stub
+		if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
+				&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+			// left
+			Log.i(TAG, "ListView left");
+			showNext();
+			return true;
+		} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
+				&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+			// right
+			Log.i(TAG, "ListView right");
+			showPrevious();
+			return true;
+		}
+		return false;
+	}
+	@Override
+	public void onLongPress(MotionEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2,
+			float arg3) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public void onShowPress(MotionEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public boolean onSingleTapUp(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	public void showNext() {
+		Announcement anno = new Announcement();
+		for(int i = 0; i < annoList.size(); i++) {
+			Log.e(TAG, "currentItem:" + currentItem);
+			if(annoList.get(i).getId() == currentItem && i < annoList.size()-1) {
+				anno = annoList.get(i+1);
+				currentItem = anno.getId();
+				if(anno.getTitle() != null && !anno.getTitle().equals("null"))
+		        	titleView.setText(anno.getTitle());
+		    	if(anno.getRepDate() != null && !anno.getRepDate().equals("null"))
+		    		repDateView.setText(anno.getRepDate());
+		    	if(anno.getContent() != null && !anno.getContent().equals("null"))
+		    		contentView.setText(anno.getContent());
+		    	break;
+			}
+		}
+	}
+	public void showPrevious() {
+		Announcement anno = new Announcement();
+		for(int i = 0; i < annoList.size(); i++) {
+			Log.e(TAG, "currentItem:" + currentItem);
+			if(annoList.get(i).getId() == currentItem && i > 0) {
+				anno = annoList.get(i-1);
+				currentItem = anno.getId();
+				if(anno.getTitle() != null && !anno.getTitle().equals("null"))
+		        	titleView.setText(anno.getTitle());
+		    	if(anno.getRepDate() != null && !anno.getRepDate().equals("null"))
+		    		repDateView.setText(anno.getRepDate());
+		    	if(anno.getContent() != null && !anno.getContent().equals("null"))
+		    		contentView.setText(anno.getContent());
+		    	break;
+			}
+		}
 	}
 }

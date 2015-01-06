@@ -4,27 +4,41 @@ import java.util.List;
 
 import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.model.Announcement;
+import com.evaluation.util.GestureListView;
 import com.evaluation.util.InfoListAdapter;
 import com.evaluation.util.LineView;
 import com.evaluation.util.OnPageChangeListener;
 import com.evaluation.util.PageControl;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.view.View.OnTouchListener;
 
 public class InfoCenterActivity extends Activity implements OnPageChangeListener {
 	private int currentItem;
 	private DatabaseAdapter dba;
 	private List<Announcement> annoList;
+	private List<Announcement> curList;
 	private String account;
 	private ImageButton back;
 	private TextView weekView;
@@ -38,6 +52,7 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
     private ListView infoListView;
     private int pageNum = 1;
     private final int numPerPage = 10;
+    private int curPage = 1;
 	private String TAG = "effort";
 	private boolean activityOver = false;
 	private LineView lineView;
@@ -64,10 +79,22 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
 				InfoCenterActivity.this.finish();
 			}
 		});
-        
         infoListView = (ListView) findViewById(R.id.listView);
         adapter = new InfoListAdapter(this, pageNum, numPerPage, dba.findOnePageAnno(account, 0, numPerPage));
         infoListView.setAdapter(adapter);
+        infoListView.setOnItemClickListener(new ListView.OnItemClickListener() {
+        	@Override 
+            public void onItemClick(AdapterView<?> parent, View view, 
+                    int position, long id) { 
+                // TODO Auto-generated method stub 
+                Log.i(TAG, "position=="+position); 
+                Intent intent = new Intent(InfoCenterActivity.this, InfoDetailActivity.class);
+                curList=dba.findOnePageAnno(account, (curPage-1)*numPerPage,numPerPage);
+    			intent.putExtra("currentItem", curList.get(position).getId());
+    			intent.putExtra("account", curList.get(position).getAccount());
+    			InfoCenterActivity.this.startActivity(intent);
+            }
+        });
         //初始化分页组件  
         pageControl=(PageControl) findViewById(R.id.TableLayout1);  
         pageControl.setPageChangeListener(this);
@@ -76,6 +103,8 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
         pageControl.setVisibility(View.VISIBLE);
 		Thread dateThread = new DateThread();
 		dateThread.start();
+		registerReceiver(mBroadcastReceiver, new IntentFilter("TIMEOUT"));
+		registerReceiver(mBroadcastReceiver, new IntentFilter("LEAVE_INFO"));
     }
  // 设置标题上的时间
  	private Handler dateHandler = new Handler() {
@@ -125,23 +154,40 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
 	@Override
 	protected void onStop() {
 		// 当Activity不可见的时候停止切换
-		activityOver = false;
+		activityOver = true;
 		super.onStop();
 	}
 	@Override
 	protected void onDestroy() {
 		Log.e(TAG, "onDestroy");
 		dba.close();
+		if(mBroadcastReceiver != null)
+			this.unregisterReceiver(mBroadcastReceiver);
 		super.onDestroy();
 	}
 	@Override
 	public void pageChanged(int curPage, int numPerPage) {
 		// TODO Auto-generated method stub
 		Log.e(TAG, "pageChanged.curPage: " + curPage);
-		List<Announcement> words=dba.findOnePageAnno(account, (curPage-1)*numPerPage,numPerPage);  
+		this.curPage = curPage;
+		curList=dba.findOnePageAnno(account, (curPage-1)*numPerPage,numPerPage);  
         adapter.clear();
-        adapter.addAll(curPage, words);
+        adapter.addAll(curPage, curList);
         pageNum++;
         adapter.notifyDataSetChanged();
 	}
+	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			if(intent.getAction().equals("TIMEOUT")) {
+	        	Log.e(TAG, "TIMEOUT");
+	        	//Toast.makeText(EvaluationActivity.this, "HEART_BEAT", Toast.LENGTH_SHORT).show();
+	        	InfoCenterActivity.this.finish();
+	        } else if(intent.getAction().equals("LEAVE_INFO")) {
+	        	InfoCenterActivity.this.finish();
+	        }
+		}
+	};
 }

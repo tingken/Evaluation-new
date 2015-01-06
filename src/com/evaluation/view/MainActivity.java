@@ -16,6 +16,7 @@ import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.model.Announcement;
 import com.evaluation.model.User;
 import com.evaluation.service.HomeService;
+import com.evaluation.util.CommonUtils;
 import com.evaluation.util.DotView;
 import com.evaluation.util.LeaveDialog;
 import com.evaluation.util.PagerAdapter;
@@ -24,20 +25,27 @@ import com.evaluation.util.VerticalViewPager.OnPageChangeListener;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.Parcelable;
 import android.os.PowerManager;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 //import android.support.v4.view.PagerAdapter;
 //import android.support.v4.view.ViewPager;
 //import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -59,15 +67,17 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements OnClickListener {
+public class MainActivity extends FragmentActivity implements OnClickListener {
 
 	private String TAG = "effort";
 	private boolean activityOver = false;
+	private boolean annosOk = false;
 	private VerticalViewPager viewPager; // android-support-v4中的滑动组件
 	private List<ImageView> imageViews; // 滑动的图片集合
 	AnnouncementManager am;
 
 	private String[] titles; // 图片标题
+	private String[] dates; // 公告发布日期
 	private String[] contents; //图片对应的正文
 	private ArrayList<View> dots; // 图片标题正文的那些点
 
@@ -84,6 +94,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private String weekValue;
 	private String timeValue;
 	private TextView tv_title;
+	private TextView tv_date;
 	private TextView tv_content;
 	private TextView acceptBiz;
 	private int currentItem = 0; // 当前图片的索引号
@@ -98,12 +109,15 @@ public class MainActivity extends Activity implements OnClickListener {
 	private Button servicePromises;
 	private Button infCenter;
 	private Button accessWeb;
+	private List<Button> buttons = new ArrayList<Button>();
 	private Bitmap bitmap;
 	private String versionNo;
+	private boolean _isBound;
+	private HomeService _boundService;
 	//private UsbBroadcastReceiver mBroadcastReceiver;
 	private PowerManager powerManager;
 	private PowerManager.WakeLock wakeLock;
-	LeaveDialog leaveDialog;// = new LeaveDialog(this, R.layout.layout_dialog, R.style.Theme_dialog);
+	private LeaveDialog leaveDialog;// = new LeaveDialog(this, R.layout.layout_dialog, R.style.Theme_dialog);
 
 	// An ExecutorService that can schedule commands to run after a given delay,
 	// or to execute periodically.
@@ -112,8 +126,9 @@ public class MainActivity extends Activity implements OnClickListener {
 	// 切换当前显示的图片
 	private Handler handler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
-			Log.e(TAG, "currentItem: " + currentItem);
 			viewPager.setCurrentItem(currentItem);// 切换当前显示的图片
+//			tv_title.setText(titles[currentItem]);
+//			tv_content.setText(contents[currentItem]);
 		};
 	};
 	
@@ -123,8 +138,8 @@ public class MainActivity extends Activity implements OnClickListener {
 	        dateView.setText(dateValue);
 	        timeView.setText(timeValue);
 	        weekView.setText("星期" + weekValue);
-	        if(msg.what == 2)
-	        	getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+//	        if(msg.what == 2)
+//	        	viewPager.setCurrentItem(currentItem);
 		};
 	};
 
@@ -148,6 +163,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		loginId = this.getIntent().getStringExtra("loginId");
 		((MyApplication)this.getApplication()).setAccount(account);
 		((MyApplication)this.getApplication()).setLoginId(loginId);
+		((MyApplication)this.getApplication()).setEvaluatable(true);
         try {
 			PackageInfo packInfo = this.getPackageManager().getPackageInfo(this.getPackageName(), 0);
 			versionNo = packInfo.versionName;
@@ -159,22 +175,25 @@ public class MainActivity extends Activity implements OnClickListener {
 		dateView = (TextView) findViewById(R.id.date);
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
+		setting = (ImageButton) findViewById(R.id.setting);
 		
 		photoView = (ImageView) findViewById(R.id.photo);
 		userNameView = (TextView) findViewById(R.id.user_name);
 		//userNameView.setTypeface(MSFace); //微软雅黑
 		accountView = (TextView) findViewById(R.id.account);
-		accountView.getPaint().setFlags(Paint. UNDERLINE_TEXT_FLAG ); //下划线
+		accountView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG ); //下划线
 		accountView.getPaint().setAntiAlias(true);//抗锯齿
 		orgView = (TextView) findViewById(R.id.org);
-		orgView.getPaint().setFlags(Paint. UNDERLINE_TEXT_FLAG ); //下划线
+		orgView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG ); //下划线
 		orgView.getPaint().setAntiAlias(true);//抗锯齿
 		
 		tv_title = (TextView) findViewById(R.id.tv_title);
+		tv_date = (TextView) findViewById(R.id.tv_date);
 		tv_content = (TextView) findViewById(R.id.tv_content);
 		tv_title.setShadowLayer(1F, 2F,2F, Color.WHITE);
 		tv_title.getPaint().setColor(Color.RED);
 		tv_title.getPaint().setStrokeWidth(3);
+		tv_date.setShadowLayer(1F, 2F,2F, Color.WHITE);
 		tv_content.setShadowLayer(1F, 2F,2F, Color.WHITE);
 		imageViews = new ArrayList<ImageView>();
 		viewPager = (VerticalViewPager) findViewById(R.id.vp);
@@ -198,18 +217,23 @@ public class MainActivity extends Activity implements OnClickListener {
 		businessGuide = (Button) findViewById(R.id.businessGuide);
 		businessGuide.setTag(1);
 		businessGuide.setOnClickListener(this);
+		buttons.add(businessGuide);
 		jobStatements = (Button) findViewById(R.id.jobStatements);
 		jobStatements.setTag(2);
 		jobStatements.setOnClickListener(this);
+		buttons.add(jobStatements);
 		servicePromises = (Button) findViewById(R.id.servicePromises);
 		servicePromises.setTag(3);
 		servicePromises.setOnClickListener(this);
+		buttons.add(servicePromises);
 		infCenter = (Button) findViewById(R.id.inf_center);
 		infCenter.setTag(4);
 		infCenter.setOnClickListener(this);
+		buttons.add(infCenter);
 		accessWeb = (Button) findViewById(R.id.accessWeb);
 		accessWeb.setTag(5);
 		accessWeb.setOnClickListener(this);
+		buttons.add(accessWeb);
 		UsbManager manager=(UsbManager) getSystemService(Context.USB_SERVICE);
 		registerReceiver(mBroadcastReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED));
 		registerReceiver(mBroadcastReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED));
@@ -243,7 +267,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	
 	@Override
 	protected void onStart() {
-		if(scheduledExecutorService == null) {
+		if(scheduledExecutorService == null && activityOver) {
 			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 			// 当Activity显示出来后，每两秒钟切换一次图片显示
 			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
@@ -251,7 +275,11 @@ public class MainActivity extends Activity implements OnClickListener {
 		activityOver = false;
 		Thread dateThread = new DateThread();
 		dateThread.start();
-		
+		for(Button button : buttons) {
+			button.setEnabled(true);
+		}
+		if(setting != null)
+			setting.setEnabled(true);
 //		bindService();
 		super.onStart();
 	}
@@ -262,9 +290,9 @@ public class MainActivity extends Activity implements OnClickListener {
 		if(scheduledExecutorService != null) {
 			scheduledExecutorService.shutdown();
 			scheduledExecutorService = null;
-			activityOver = true;
 		}
-		
+		leaveDialog.dismiss();
+		activityOver = true;
 //		unbindService();
 		//stopService();
 		super.onStop();
@@ -273,10 +301,10 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override
 	public void onDestroy() {
 		Log.e(TAG, "onDestory");
-//		if(am != null){
-//			am.close();
-//			//am = null;
-//		}
+		if(bitmap != null){
+			bitmap.recycle();
+			bitmap = null;
+		}
 		stopService();
 		((MyApplication)this.getApplication()).setLoginId("");
 		if(mBroadcastReceiver != null)
@@ -294,10 +322,20 @@ public class MainActivity extends Activity implements OnClickListener {
 			int count = 0;
 			while(!activityOver) {
 				count ++;
-				if((count % 40) == 0)
-					dateHandler.sendEmptyMessage(2);
+//				if((count % 4) == 0 && annosOk){
+//					synchronized (viewPager) {
+//						currentItem = (currentItem + 1) % annoList.size();
+//						dateHandler.sendEmptyMessage(2); // 通过Handler切换图片
+//					}
+//				}
+				if((count % 300) == 0) {
+					Log.e(TAG, "定时上传保存的未上传评价");
+					AccountManager acm = new AccountManager(MainActivity.this);
+					acm.sendEvaluation();
+					acm.close();
+				}
 				try {
-					Thread.sleep(200);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -358,9 +396,9 @@ public class MainActivity extends Activity implements OnClickListener {
 		 * position: Position index of the new selected page.
 		 */
 		public void onPageSelected(int position) {
-			Log.e(TAG, "MyPageChangeListener: " + position);
 			currentItem = position;
 			tv_title.setText(titles[position]);
+			tv_date.setText(dates[position]);
 			tv_content.setText(contents[position]);
 			dots.get(oldPosition).setBackgroundResource(R.drawable.dot_normal);
 			dots.get(position).setBackgroundResource(R.drawable.dot_focused);
@@ -376,7 +414,6 @@ public class MainActivity extends Activity implements OnClickListener {
 //				uselessImageView = null;
 //			}
 			oldPosition = position;
-			Log.e(TAG, "imageViews.size: " + imageViews.size());
 		}
 
 		public void onPageScrollStateChanged(int arg0) {
@@ -396,7 +433,6 @@ public class MainActivity extends Activity implements OnClickListener {
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
-			Log.e(TAG, "MyViewPagerOnClick");
 			Intent intent = new Intent(MainActivity.this, InfoDetailActivity.class);
 			intent.putExtra("currentItem", item);
 			intent.putExtra("account", account);
@@ -411,24 +447,23 @@ public class MainActivity extends Activity implements OnClickListener {
 	 * @author Administrator
 	 * 
 	 */
-	private class MyAdapter extends PagerAdapter {
+	private class MyAdapter extends PagerAdapter  {
 
 		@Override
 		public int getCount() {
-			return imageViews.size();
+			return annoList.size();
 		}
 
 		@Override
 		public Object instantiateItem(View arg0, int arg1) {
-			Log.e(TAG, "instantiateItem:" + arg1);
 			ImageView imageView = new ImageView(MainActivity.this);
-			Bitmap bmp = am.getRoundCornerBitmapByName(annoList.get(arg1).getImageName());
-			if(bmp != null)
+			Bitmap bmp = am.getBitmapFromMemCache(arg1, annoList.get(arg1).getImageName());
+			if(bmp != null && !bmp.isRecycled())
 				imageView.setImageBitmap(bmp);
 			imageView.setOnClickListener(new MyViewPagerOnClickListener(
 					annoList.get(arg1).getId()));
 			((VerticalViewPager) arg0).addView(imageView);
-			return imageView;
+//			return imageViews.get(arg1);
 //			if (imageViews.size() <= arg1)
 //				imageViews.add(imageView);
 //			else
@@ -438,20 +473,20 @@ public class MainActivity extends Activity implements OnClickListener {
 //				return imageViews.get(arg1);
 //			}
 //			return null;
-//			return imageViews.get(arg1);
+			return imageView;
 		}
 
 		@Override
 		public void destroyItem(View arg0, int arg1, Object arg2) {
-			Log.e(TAG, "destroyItem: " + arg1);
-			//((VerticalViewPager) arg0).removeView((View) arg2);
-			Bitmap bmp = (Bitmap) ((ImageView) arg2).getDrawingCache();
-			if (null != bmp && !bmp.isRecycled()) {
-				bmp.recycle();
-				bmp = null;
-			}
-			arg2 = null;
-			System.gc();
+			((VerticalViewPager) arg0).removeView((View) arg2);
+//			am.removeImageCache(arg1, annoList.get(arg1).getImageName());
+//			Bitmap bmp = (Bitmap) ((ImageView) arg2).getDrawingCache();
+//			if (null != bmp && !bmp.isRecycled()) {
+//				bmp.recycle();
+//				bmp = null;
+//			}
+//			arg2 = null;
+//			System.gc();
 		}
 
 		@Override
@@ -491,16 +526,19 @@ public class MainActivity extends Activity implements OnClickListener {
 				bitmap = am.getBitmapByName(user.getPhotoName());
 			List<Announcement> allAnnos = dba.findAnnouncementsByAccount(account);
 			for(Announcement ann : allAnnos) {
-				if(afterNow(ann.getOutOfDate(), "yyyy年MM月dd日"))
+				if(afterNow(ann.getOutOfDate(), "yyyy年MM月dd日") || ann.getOutOfDate().equals("null"))
 					annoList.add(ann);
 			}
 			titles = new String[annoList.size()];
+			dates = new String[annoList.size()];
 			contents = new String[annoList.size()];
 			
 			//imageViews = am.getImageViews();
 			for(int i = 0; i < annoList.size(); i++) {
 				if (!annoList.get(i).getTitle().equals("null"))
 					titles[i] = annoList.get(i).getTitle();
+				if (!annoList.get(i).getRepDate().equals("null"))
+					dates[i] = annoList.get(i).getRepDate();
 				if (!annoList.get(i).getContent().equals("null")) {
 					contents[i] = annoList.get(i).getContent();
 				}
@@ -520,7 +558,8 @@ public class MainActivity extends Activity implements OnClickListener {
 	private class AnnounHandler extends Handler {
 		@Override
 		public void handleMessage(Message msg) {
-			viewPager.setAdapter(new MyAdapter());// 设置填充ViewPager页面的适配器
+			MyAdapter mAdapter = new MyAdapter();
+			viewPager.setAdapter(mAdapter);// 设置填充ViewPager页面的适配器
 			// 设置一个监听器，当ViewPager中的页面改变时调用
 			viewPager.setOnPageChangeListener(new MyPageChangeListener());
 			if(user != null) {
@@ -530,7 +569,12 @@ public class MainActivity extends Activity implements OnClickListener {
 				acceptBiz.setText(user.getOperation());
 				photoView.setImageBitmap(bitmap);
 			}
-			
+			if(titles.length > 0)
+				tv_title.setText(titles[0]);
+			if(dates.length > 0)
+				tv_date.setText(dates[0]);
+			if(contents.length > 0)
+				tv_content.setText(contents[0]);
 			//tv_title.setText(titles[0]);
 			
 			
@@ -540,24 +584,28 @@ public class MainActivity extends Activity implements OnClickListener {
 			for(int i = 0; i < annoList.size(); i++) {
 				View dot = new DotView(MainActivity.this);
 				dot.setId(50 + i);
-				dot.setBackgroundResource(R.drawable.dot_normal);
+				if(i == 0){
+					dot.setBackgroundResource(R.drawable.dot_focused);
+				}else{
+					dot.setBackgroundResource(R.drawable.dot_normal);
+				}
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(10, 10);
 				params.setMargins(3, 0, 3, 0);
 				dot.setLayoutParams(params);
 				dots.add(dot);
 				dotsLayout.addView(dot, i);
 			}
-			dots.get(0).setBackgroundResource(R.drawable.dot_focused);
 			//dotsLayout.addChildrenForAccessibility(dots);
 			
-			for(int i = 0; i < dots.size(); i++) {
-				dots.get(i).setOnClickListener(new MyDotClickListener(i));
-			}
+//			for(int i = 0; i < dots.size(); i++) {
+//				dots.get(i).setOnClickListener(new MyDotClickListener(i));
+//			}
 			if(scheduledExecutorService == null) {
 				scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 				// 当Activity显示出来后，每两秒钟切换一次图片显示
 				scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 			}
+			annosOk = true;
 			//设置按钮功能实现
 			LayoutInflater inflater = LayoutInflater.from(MainActivity.this);  
 	        // 引入窗口配置文件  
@@ -571,7 +619,6 @@ public class MainActivity extends Activity implements OnClickListener {
 	        // 设置此参数获得焦点，否则无法点击  
 	        pop.setFocusable(true);
 
-			setting = (ImageButton) findViewById(R.id.setting);
 	        setting.setOnClickListener(new View.OnClickListener() {  
 	              
 	            @Override  
@@ -609,18 +656,18 @@ public class MainActivity extends Activity implements OnClickListener {
 			});
 		}
 	}
-//	private ServiceConnection _connection = new ServiceConnection(){
-//		public void onServiceConnected(ComponentName className, IBinder Service){
-//			_boundService = ((HomeService.LocalBinder)Service).getService();
-//			Toast.makeText(MainActivity.this, "Service connected", Toast.LENGTH_SHORT).show();
-//		}
-//		public void onServiceDisconnected(ComponentName className){
-//			//
-//			_boundService = null;
-//			Toast.makeText(MainActivity.this, "Service disconnected", Toast.LENGTH_SHORT).show();
-//		}
-//	};
-//	
+	private ServiceConnection _connection = new ServiceConnection(){
+		public void onServiceConnected(ComponentName className, IBinder Service){
+			_boundService = ((HomeService.LocalBinder)Service).getService();
+			//Toast.makeText(MainActivity.this, "Service connected", Toast.LENGTH_SHORT).show();
+		}
+		public void onServiceDisconnected(ComponentName className){
+			//
+			_boundService = null;
+			//Toast.makeText(MainActivity.this, "Service disconnected", Toast.LENGTH_SHORT).show();
+		}
+	};
+	
 	private void startService(){
 		Intent i = new Intent(this, HomeService.class);
 		this.startService(i);
@@ -629,19 +676,19 @@ public class MainActivity extends Activity implements OnClickListener {
 		Intent i = new Intent(this, HomeService.class);
 		this.stopService(i);
 	}
-//	private void bindService(){
-//		Log.e(TAG, "================>Main.bindService");
-//		Intent i = new Intent(this, HomeService.class);
-//		this.bindService(i, _connection, Context.BIND_AUTO_CREATE);
-//		_isBound = true;
-//	}
-//	private void unbindService(){
-//		Log.e(TAG, "================>Main.unbindService");
-//		if(_isBound){
-//			unbindService(_connection);
-//			_isBound = false;
-//		}
-//	}
+	private void bindService(){
+		Log.e(TAG, "================>Main.bindService");
+		Intent i = new Intent(this, HomeService.class);
+		this.bindService(i, _connection, Context.BIND_AUTO_CREATE);
+		_isBound = true;
+	}
+	private void unbindService(){
+		Log.e(TAG, "================>Main.unbindService");
+		if(_isBound){
+			unbindService(_connection);
+			_isBound = false;
+		}
+	}
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 
 		@Override
@@ -663,6 +710,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	    			scheduledExecutorService = null;
 	    			//activityOver = false;
 	    		}
+	        	annosOk = false;
 	        	leaveDialog.show();
 	        	Log.e(TAG, "收到PC端工作人员离开消息");
 	        }else if(intent.getAction().equals("BACK_INFO")) {
@@ -673,13 +721,17 @@ public class MainActivity extends Activity implements OnClickListener {
 	    			// 当Activity显示出来后，每两秒钟切换一次图片显示
 	    			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 	    		}
+	        	annosOk = true;
 	        }else if(intent.getAction().equals("TIMEOUT")) {
 	        	if(scheduledExecutorService != null) {
 	    			scheduledExecutorService.shutdown();
 	    			scheduledExecutorService = null;
 	    			//activityOver = false;
 	    		}
-	        	Toast.makeText(MainActivity.this, "Socket timeout", Toast.LENGTH_SHORT).show();
+	        	if(leaveDialog != null)
+	        		leaveDialog.dismiss();
+	        	annosOk = false;
+	        	//Toast.makeText(MainActivity.this, "Socket timeout", Toast.LENGTH_SHORT).show();
 //	        	if (wakeLock != null && wakeLock.isHeld()) {
 //	        		wakeLock.release();
 //	        		wakeLock = null;
@@ -697,7 +749,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	        	Intent emptyIntent = new Intent(MainActivity.this, EmptyActivity.class);
 	        	context.startActivity(emptyIntent);
 	        }else{
-	        	Toast.makeText(MainActivity.this, "Received unexpected intent " + intent.toString(), Toast.LENGTH_SHORT).show();
+	        	//Toast.makeText(MainActivity.this, "Received unexpected intent " + intent.toString(), Toast.LENGTH_SHORT).show();
 	        	Log.e(TAG, "Received unexpected intent " + intent.toString());
 	        }
 		}	
@@ -714,62 +766,84 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
+		if (CommonUtils.isFastDoubleClick()) {  
+	        return;
+		}
 		int tag = (Integer)v.getTag();
-		AccessWeb accessWeb = new AccessWeb(tag);
-		accessWeb.start();
-	}
-	private class AccessWeb extends Thread{
-		private int tag;
-		private String url;
-		public AccessWeb(int tag) {
-			this.tag = tag;
+//		AccessWeb accessWeb = new AccessWeb(tag);
+//		accessWeb.start();
+		for(Button button : buttons) {
+			button.setEnabled(false);
 		}
-		
-		@Override
-		public void run() {
+		if(setting != null)
+			setting.setEnabled(false);
+		if(tag == 4) {
+			Intent i = new Intent(MainActivity.this, InfoCenterActivity.class);
+			i.putExtra("account", account);
+//			i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+			MainActivity.this.startActivity(i);
+		}else {
 			Intent intent = new Intent(MainActivity.this,WebActivity.class);
-			AccountManager am = new AccountManager(MainActivity.this);
-			String data = "";
-			switch(tag) {
-			case 1:
-				url = "GscSupport.svc/BusinessGuideWebSites?loginId=" + loginId;
-				data = am.getData("url", url);
-				if(data != null)
-		            intent.putExtra("url", data);
-				break;
-			case 2:
-				url = "GscSupport.svc/JobStatements?loginId=" + loginId;
-				data = am.getData("content", url);
-				if(data != null){
-		            intent.putExtra("content", data);
-		            intent.putExtra("title", "岗位职责");
-				}
-				break;
-			case 3:
-				url = "GscSupport.svc/ServicePromises?loginId=" + loginId;
-				data = am.getData("content", url);
-				if(data != null){
-		            intent.putExtra("content", data);
-		            intent.putExtra("title", "服务承诺");
-				}
-				break;
-			case 4:
-				Intent i = new Intent(MainActivity.this, InfoCenterActivity.class);
-				i.putExtra("account", account);
-				MainActivity.this.startActivity(i);
-				return;
-			case 5:
-				url = "GscSupport.svc/OfficeCenterWebSites?loginId=" + loginId;
-				data = am.getData("url", url);
-				if(data != null)
-		            intent.putExtra("url", data);
-				break;
-			default:
-				break;
-			}
-            MainActivity.this.startActivity(intent);
+			intent.putExtra("tag", tag);
+			intent.putExtra("loginId", loginId);
+			MainActivity.this.startActivity(intent);
 		}
 	}
+//	private class AccessWeb extends Thread{
+//		private int tag;
+//		private String url;
+//		public AccessWeb(int tag) {
+//			this.tag = tag;
+//		}
+//		
+//		@Override
+//		public void run() {
+//			Intent intent = new Intent(MainActivity.this,WebActivity.class);
+//			AccountManager am = new AccountManager(MainActivity.this);
+//			String data = "";
+//			switch(tag) {
+//			case 1:
+//				url = "GscSupport.svc/BusinessGuideWebSites?loginId=" + loginId;
+//				data = am.getData("url", url);
+//				if(data != null)
+//		            intent.putExtra("url", data);
+//				break;
+//			case 2:
+//				url = "GscSupport.svc/JobStatements?loginId=" + loginId;
+//				data = am.getData("content", url);
+//				if(data != null){
+//		            intent.putExtra("content", data);
+//		            intent.putExtra("title", "岗位职责");
+//				}
+//				break;
+//			case 3:
+//				url = "GscSupport.svc/ServicePromises?loginId=" + loginId;
+//				data = am.getData("content", url);
+//				if(data != null){
+//		            intent.putExtra("content", data);
+//		            intent.putExtra("title", "服务承诺");
+//				}
+//				break;
+//			case 4:
+//				Intent i = new Intent(MainActivity.this, InfoCenterActivity.class);
+//				i.putExtra("account", account);
+////				i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//				MainActivity.this.startActivity(i);
+//				return;
+//			case 5:
+//				url = "GscSupport.svc/OfficeCenterWebSites?loginId=" + loginId;
+//				data = am.getData("url", url);
+//				if(data != null)
+//		            intent.putExtra("url", data);
+//				break;
+//			default:
+//				break;
+//			}
+//			am.close();
+////			intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//            MainActivity.this.startActivity(intent);
+//		}
+//	}
 	//
 	private boolean afterNow(String date, String dateFormat) {
 		Date time=new Date();

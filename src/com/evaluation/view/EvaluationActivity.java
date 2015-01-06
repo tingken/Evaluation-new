@@ -1,5 +1,8 @@
 package com.evaluation.view;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evaluation.model.Evaluation;
 import com.evaluation.model.User;
 import com.evaluation.service.HomeService;
@@ -8,7 +11,10 @@ import com.evaluation.dao.DatabaseAdapter;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
@@ -37,6 +43,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	private ImageButton button3;
 	private ImageButton button4;
 	private ImageButton button5;
+	private List<ImageButton> buttons = new ArrayList<ImageButton>();
 	private TextView thanks;
 	private String account = "";
 	private String loginId = "";
@@ -68,22 +75,31 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 		button0 = (ImageButton) findViewById(R.id.button0);
 		button0.setTag(0);
 		button0.setOnClickListener(this);
+		buttons.add(button0);
 		button1 = (ImageButton) findViewById(R.id.button1);
 		button1.setTag(1);
 		button1.setOnClickListener(this);
+		buttons.add(button1);
 		button2 = (ImageButton) findViewById(R.id.button2);
 		button2.setTag(2);
 		button2.setOnClickListener(this);
+		buttons.add(button2);
 		button3 = (ImageButton) findViewById(R.id.button3);
 		button3.setTag(3);
 		button3.setOnClickListener(this);
+		buttons.add(button3);
 		button4 = (ImageButton) findViewById(R.id.button4);
 		button4.setTag(4);
 		button4.setOnClickListener(this);
+		buttons.add(button4);
 		button5 = (ImageButton) findViewById(R.id.button5);
 		button5.setTag(5);
 		button5.setOnClickListener(this);
+		buttons.add(button5);
+		
 		thanks = (TextView) findViewById(R.id.thanks);
+		registerReceiver(mBroadcastReceiver, new IntentFilter("TIMEOUT"));
+		registerReceiver(mBroadcastReceiver, new IntentFilter("LEAVE_INFO"));
 //		Thread dateThread = new DateThread();
 //		dateThread.start();
 		
@@ -119,9 +135,14 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	@Override
 	public void onClick(View view) {
 		// TODO Auto-generated method stub
+		int tag = (Integer)view.getTag();
+		for(ImageButton button : buttons) {
+			if((Integer)button.getTag() != tag) {
+				button.setEnabled(false);
+			}
+		}
 		thanks.setText("谢谢您的评价，我们会努力做到更好。");
 		tts.speak("谢谢您的评价，我们会努力做到更好。", TextToSpeech.QUEUE_ADD, null);
-		int tag = (Integer)view.getTag();
 		switch(tag){
 		case 0:
 			button0.setBackgroundResource(R.drawable.face_sel);
@@ -151,6 +172,12 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 			break;
 		}
 	}
+//	private void setOtherButtonUnEnabled(int id) {
+//		for(int i = 0; i < 6; i++){
+//			if(id != i)
+//				(Button)Class.forName("button" + i).
+//		}
+//	}
 	private void sendData(int data){
 		((MyApplication)this.getApplication()).setValue(data);
 		((MyApplication)this.getApplication()).setStatu(true);
@@ -158,6 +185,15 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 			Thread dataThread = new SendDataThread(data);
 			dataThread.start();
 		}
+		while(tts.isSpeaking()){
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		EvaluationActivity.this.finish();
 	}
 	private class SendDataThread extends Thread{
 		private int data;
@@ -180,16 +216,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 				dba.close();
 				Log.e(TAG, "评价上传失败，保存到数据库。");
 			}
-			while(tts.isSpeaking()){
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 			am.close();
-			EvaluationActivity.this.finish();
 		}
 	}
 	/**
@@ -246,6 +273,8 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	@Override
 	protected void onDestroy() {
 		tts.shutdown();
+		if(mBroadcastReceiver != null)
+			this.unregisterReceiver(mBroadcastReceiver);
 		super.onDestroy();
 	}
 	@Override
@@ -267,4 +296,18 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 			return false;
 		}
 	}
+	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			if(intent.getAction().equals("TIMEOUT")) {
+	        	Log.e(TAG, "TIMEOUT");
+	        	//Toast.makeText(EvaluationActivity.this, "HEART_BEAT", Toast.LENGTH_SHORT).show();
+	        	EvaluationActivity.this.finish();
+	        } else if(intent.getAction().equals("LEAVE_INFO")) {
+	        	EvaluationActivity.this.finish();
+	        }
+		}
+	};
 }

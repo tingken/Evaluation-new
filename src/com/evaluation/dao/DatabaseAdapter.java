@@ -138,8 +138,11 @@ public class DatabaseAdapter {
 			return mSQLiteDatabase.update(USER_TABLE, initialValues, "ACCOUNT=\'" + user.getAccount() + "\'", null);
 		}else {
 			//ACCOUNT, PASSWORD, NAME, ORG, WINNO, PHOTO_NAME
-			if(findAllUser() != null && findAllUser().size() >= USER_TABLE_MAX)
-				mSQLiteDatabase.delete(USER_TABLE, "ID = min(ID)", null);
+			if(findAllUser() != null && findAllUser().size() >= USER_TABLE_MAX){
+				//mSQLiteDatabase.delete(USER_TABLE, "ID = min(ID)", null);
+				this.deleteAnnouncementByAccount(this.findOldestUser().getAccount());
+				this.deleteAccount(this.findOldestUser().getAccount());
+			}
 			initialValues.put("ACCOUNT", user.getAccount());
 			return mSQLiteDatabase.insert(USER_TABLE, KEY_ID, initialValues);
 		}
@@ -372,7 +375,7 @@ public class DatabaseAdapter {
 	public List<User> findAllUser() throws SQLException{
 		Cursor mCursor = null;
 		List<User> userList = new ArrayList<User>();
-		mCursor = mSQLiteDatabase.query(false, USER_TABLE, userColumn, null, null, null, null, null, null);
+		mCursor = mSQLiteDatabase.query(false, USER_TABLE, userColumn, null, null, null, null, "TIME desc", null);
 		if(mCursor.getCount() <= 0)
 			return null;
 		mCursor.moveToFirst();
@@ -443,8 +446,42 @@ public class DatabaseAdapter {
 		Log.e(TAG, "数据库时间" + map.get("TIME"));
 		return user;
 	}
+	public User findOldestUser() {
+		Cursor mCursor = null;
+		User user = new User();
+		mCursor = mSQLiteDatabase.query(false, USER_TABLE, userColumn, null, null, null, null, "TIME ASC", null);
+		if(mCursor != null){
+			mCursor.moveToFirst();
+		}
+		Log.e(TAG, "count: " + String.valueOf(mCursor.getCount()));
+		if(mCursor.getCount() <= 0)
+			return null;
+		Map<String, String> map = new HashMap<String, String>();
+		for(String column : userColumn) {
+			int columnIndex = mCursor.getColumnIndexOrThrow(column);
+			String value;
+			try{
+				value = mCursor.getString(columnIndex);
+			}catch(Exception e)
+			{
+				value = null;
+			}
+			map.put(column, value);
+		}
+		user.setAccount(map.get("ACCOUNT"));
+		user.setName(map.get("NAME"));
+		user.setLoginId(map.get("LOGIN_ID"));
+		user.setOrg(map.get("ORG"));
+		user.setPassword(map.get("PASSWORD"));
+		user.setPhotoName(map.get("PHOTO_NAME"));
+		user.setPhotoUrl(map.get("PHOTO_URL"));
+		user.setWorkNum(map.get("WORKNO"));
+		user.setOperation(map.get("OPERATION"));
+		Log.e(TAG, "数据库时间" + map.get("TIME"));
+		return user;
+	}
 	
-	public boolean deleteByAccount() {
+	public boolean deleteByAccount(String account) {
 		return false;
 	}
 //	public long insertData(String title, String data){

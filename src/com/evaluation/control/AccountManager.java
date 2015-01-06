@@ -22,11 +22,14 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AccountManager {
-	private String url = "http://125.71.200.138:8081/";
+	private String url = "http://125.71.200.138:8081/";//外网IP
+	//private String url = "http://10.0.205.11:8081/";//内网IP
 	private User user;
 	private DatabaseAdapter dba;
 	private Context context;
 	private String TAG = "effort";
+	private String DISCONNECT = "DISCONNECT";
+	private String WRONGPW = "WRONGPW";
 	private SharedPreferences sp;
 	private NetworkManager nm;
 
@@ -49,13 +52,13 @@ public class AccountManager {
 			Log.e(TAG, "The network is not connect.");
 			User existUser = dba.findUserByAccount(user.getAccount());
 			if(existUser == null)
-				return null;
+				return DISCONNECT;
 			else if(existUser.getPassword().equals(user.getPassword())){
 				dba.updateLoginTime(user.getAccount());
 				return existUser.getLoginId();
 			}
 			else
-				return null;
+				return WRONGPW;
 		}
 		this.user = user;
 		String out = "";
@@ -63,7 +66,6 @@ public class AccountManager {
 		String loginId = "";
 		try {
 			out = nm.executeGet(url + "GscSupport.svc/Login?username=" + user.getAccount() + "&password=" + user.getPassword());
-			Log.e(TAG, out);
 			jsonObject = new JSONObject(out);
 			loginId = jsonObject.getString("Id");
 		} catch (Exception e1) {
@@ -129,7 +131,7 @@ public class AccountManager {
 			user.setWorkNum(jsonObject.getString("workNum"));
 			user.setLoginId(loginId);
 			return user;
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -193,6 +195,13 @@ public class AccountManager {
 			return null;
 		}
 		return data;
+	}
+	public void deleteUserByAccount(String account) {
+		dba = new DatabaseAdapter(context);
+		dba.open();
+		dba.deleteAccount(account);
+		dba.deleteAnnouncementByAccount(account);
+		dba.close();
 	}
 	public void close() {
 		if(nm != null)

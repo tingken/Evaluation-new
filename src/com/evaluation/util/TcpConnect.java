@@ -37,6 +37,14 @@ public class TcpConnect extends Thread {
 		iRunFlag = false;
 		//this.interrupt();
 	}
+	public int getCurrentLinkedSocketThreadNum() {
+		int count = 0;
+		for(Thread thread : threadList) {
+			if(thread.isAlive())
+				count++;
+		}
+		return count;
+	}
 	public void setNeedEvaluation(boolean statu) {
 		for(SocketThread thread : threadList){
 			thread.setNeedEvaluation(statu);
@@ -58,8 +66,9 @@ public class TcpConnect extends Thread {
 		 try {              
 	            String ip = InetAddress.getLocalHost().getHostAddress();    
 	            Log.e(TAG, "ip地址是: " + ip);
-	            //System.out.println(aDeviceId + "   型号: " + aDeviceType);  
-	            mServerSocket = new ServerSocket(SERVER_PORT);  
+	            //System.out.println(aDeviceId + "   型号: " + aDeviceType);
+	            if(mServerSocket == null)
+	            	mServerSocket = new ServerSocket(SERVER_PORT);  
 	            Log.e(TAG, "TcpConnect" + "建立Socket");
 	        //  listen();  
 	              

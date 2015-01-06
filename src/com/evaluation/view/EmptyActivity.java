@@ -31,6 +31,7 @@ public class EmptyActivity extends Activity {
     	getWindow().setAttributes(params);
     	
     	registerReceiver(mBroadcastReceiver, new IntentFilter("HEART_BEAT"));
+    	registerReceiver(mBroadcastReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
 	}
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 
@@ -39,10 +40,11 @@ public class EmptyActivity extends Activity {
 			// TODO Auto-generated method stub
 			if(intent.getAction().equals("HEART_BEAT")) {
 	        	Log.e(TAG, "HEART_BEAT");
-	        	Toast.makeText(EmptyActivity.this, "HEART_BEAT", Toast.LENGTH_SHORT).show();
+	        	//Toast.makeText(EmptyActivity.this, "HEART_BEAT", Toast.LENGTH_SHORT).show();
 	        	EmptyActivity.this.finish();
-	        } else {
-	        	
+	        } else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+	        	Log.e(TAG, "ACTION_SCREEN_OFF");
+	        	EmptyActivity.this.finish();
 	        }
 		}
 	};

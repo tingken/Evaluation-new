@@ -139,50 +139,52 @@ public class PageControl extends TableLayout implements OnClickListener{
         if(pageChangeListener==null){  
             return;  
         }  
-        int totalPage=count%numPerPage==0?count/numPerPage:count/numPerPage+1;  
-        switch(view.getId()){  
-        case R.id.first_page:  
-            curPage=1;  
-            firstPage.setEnabled(false);  
-            prePage.setEnabled(false);  
-            if(totalPage>1){  
-                nextPage.setEnabled(true);  
-                endPage.setEnabled(true);  
-            }  
-            break;  
-        case R.id.page_up:  
-            curPage--;  
-            if(curPage==1){  
-                firstPage.setEnabled(false);  
-                prePage.setEnabled(false);  
-            }  
-            if(totalPage>1){  
-                nextPage.setEnabled(true);  
-                endPage.setEnabled(true);  
-            }  
-            break;  
-        case R.id.page_down:  
-            curPage++;  
-            if(curPage==totalPage){  
-                nextPage.setEnabled(false);  
-                endPage.setEnabled(false);  
-            }  
-            firstPage.setEnabled(true);  
-            prePage.setEnabled(true);  
-            break;  
-        case R.id.last_page:  
-            curPage=totalPage;  
-            nextPage.setEnabled(false);  
-            endPage.setEnabled(false);  
-            firstPage.setEnabled(true);  
-            prePage.setEnabled(true);  
-            break;  
-        default:  
-            break;  
-        }  
-        totalPageText.setText("总页数 "+totalPage);
-        curPageText.setText("当前页 "+curPage);  
-        pageChangeListener.pageChanged(curPage,numPerPage);  
+        int totalPage=count%numPerPage==0?count/numPerPage:count/numPerPage+1;
+		switch (view.getId()) {
+		case R.id.first_page:
+			curPage = 1;
+			firstPage.setEnabled(false);
+			prePage.setEnabled(false);
+			if (totalPage > 1) {
+				nextPage.setEnabled(true);
+				endPage.setEnabled(true);
+			}
+			break;
+		case R.id.page_up:
+			if (curPage > 1)
+				curPage--;
+			if (curPage == 1) {
+				firstPage.setEnabled(false);
+				prePage.setEnabled(false);
+			}
+			if (totalPage > 1) {
+				nextPage.setEnabled(true);
+				endPage.setEnabled(true);
+			}
+			break;
+		case R.id.page_down:
+			if (curPage < totalPage)
+				curPage++;
+			if (curPage == totalPage) {
+				nextPage.setEnabled(false);
+				endPage.setEnabled(false);
+			}
+			firstPage.setEnabled(true);
+			prePage.setEnabled(true);
+			break;
+		case R.id.last_page:
+			curPage = totalPage;
+			nextPage.setEnabled(false);
+			endPage.setEnabled(false);
+			firstPage.setEnabled(true);
+			prePage.setEnabled(true);
+			break;
+		default:
+			break;
+		}
+		totalPageText.setText("总页数 " + totalPage);
+		curPageText.setText("当前页 " + curPage);
+		pageChangeListener.pageChanged(curPage, numPerPage); 
     }  
     public OnPageChangeListener getPageChangeListener() {  
         return pageChangeListener;  
@@ -193,5 +195,11 @@ public class PageControl extends TableLayout implements OnClickListener{
      */  
     public void setPageChangeListener(OnPageChangeListener pageChangeListener) {  
         this.pageChangeListener = pageChangeListener;  
-    }  
+    }
+    public void showNext() {
+    	onClick(nextPage);
+    }
+    public void showPrevious() {
+    	onClick(prePage);
+    }
 }

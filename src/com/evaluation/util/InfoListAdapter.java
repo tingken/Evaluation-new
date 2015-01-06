@@ -5,9 +5,12 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.BaseAdapter;
@@ -24,8 +27,10 @@ import com.evaluation.view.R;
 
 public class InfoListAdapter extends BaseAdapter {
 	private Context context;
+	private List<TextView> titles = new ArrayList<TextView>();
 	private int pageNum;
 	private int row;
+	private String TAG = "effort";
 	private List<Announcement> annoList = new ArrayList<Announcement>();
 
 	public InfoListAdapter(Context context, int pageNum, int row, List<Announcement> annoList) {
@@ -66,7 +71,9 @@ public class InfoListAdapter extends BaseAdapter {
 		final TextView title = (TextView) view.findViewById(R.id.title);
 		if(annoList.get(position).getTitle() != null && !annoList.get(position).getTitle().equals("null")){
 			title.setText(annoList.get(position).getTitle());
-			title.setOnClickListener(new MyViewPagerOnClickListener(position));
+//			title.setOnClickListener(new MyViewPagerOnClickListener(position));
+//			title.setOnTouchListener(new MyViewOnTouchListener(position));
+			titles.add(title);
 		}
 		final TextView repDate = (TextView) view
 				.findViewById(R.id.rep_date);
@@ -83,12 +90,51 @@ public class InfoListAdapter extends BaseAdapter {
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
+			//v.setBackgroundColor(Color.YELLOW);
+			for(TextView view : titles) {
+				if(view != v)
+					view.setBackgroundColor(Color.TRANSPARENT);
+			}
 			Intent intent = new Intent(context, InfoDetailActivity.class);
 			intent.putExtra("currentItem", annoList.get(item).getId());
 			intent.putExtra("account", annoList.get(item).getAccount());
 			context.startActivity(intent);
 		}
 	}
+//	private class MyViewOnTouchListener implements OnTouchListener {
+//		private int item;
+//		public MyViewOnTouchListener(int item) {
+//			this.item = item;
+//		}
+//		@Override
+//		public boolean onTouch(View v, MotionEvent event) {
+//			// TODO Auto-generated method stub
+//			v.setBackgroundColor(Color.YELLOW);
+//			Log.e(TAG, "" + event.getAction());
+//			for(TextView view : titles) {
+//				if(view != v)
+//					view.setBackgroundColor(Color.TRANSPARENT);
+//			}
+//			if (event.getAction() == MotionEvent.ACTION_MOVE) {  
+//				System.out.println("MOVE");  //接触到ListView移动时  
+//            } else if (event.getAction() == MotionEvent.ACTION_UP) {  
+//            	System.out.println("up");   //离开ListView时  
+//            	Intent intent = new Intent(context, InfoDetailActivity.class);
+//    			intent.putExtra("currentItem", annoList.get(item).getId());
+//    			intent.putExtra("account", annoList.get(item).getAccount());
+//    			context.startActivity(intent);
+//            } else if (event.getAction() == MotionEvent.ACTION_DOWN) {  
+//            	System.out.println("down");   //接触到ListView时  
+//            } else if(event.getAction() == MotionEvent.ACTION_CANCEL) {
+//            	System.out.println("CANCEL");
+//            	Intent intent = new Intent(context, InfoDetailActivity.class);
+//    			intent.putExtra("currentItem", annoList.get(item).getId());
+//    			intent.putExtra("account", annoList.get(item).getAccount());
+//    			context.startActivity(intent);
+//            }
+//			return true;
+//		}
+//	}
 	public void clear() {
 		this.annoList.clear();
  	}

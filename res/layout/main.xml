@@ -143,6 +143,11 @@
 			    	    	    android:id="@+id/org"
 			    	    	    android:gravity="center"
 			    	    	    android:background="@null"
+			    	    	    android:singleLine="true"
+								android:ellipsize="marquee"
+								android:focusableInTouchMode="true"
+								android:focusable="true"
+								android:marqueeRepeatLimit="marquee_forever"
 			    	    	    android:textSize="18sp"
 			    	        	android:textColor="#c61820"/>
 			    	    </LinearLayout>
@@ -156,7 +161,7 @@
 		    	    <TextView
 		    	        android:layout_width="wrap_content"
 		    	        android:layout_height="wrap_content"
-		    	        android:layout_marginTop="40px"
+		    	        android:layout_marginTop="33px"
 		    	        android:layout_marginLeft="40px"
 		    	        android:text="受理业务："
 		    	        android:textColor="#000000"
@@ -165,9 +170,9 @@
 		    	    <TextView
 		    	        android:id="@+id/acceptBiz"
 		    	        android:layout_width="261px"
-		    	        android:layout_height="135px"
+		    	        android:layout_height="130px"
 		    	        android:layout_marginLeft="40px"
-		    	        android:layout_marginTop="5px"
+		    	        android:layout_marginTop="4px"
 		    	        android:maxLines="6"
 		    	        android:ellipsize="marquee"
 				        android:focusable="true" 
@@ -191,14 +196,12 @@
 		        android:layout_width="545px"
 		        android:layout_height="352px"
 		        android:layout_marginTop="27px" >
-		
 		        <com.evaluation.util.VerticalViewPager
 		            android:id="@+id/vp"
 		            android:layout_width="507px"
 		            android:layout_height="309px"
 		            android:layout_marginLeft="20px"
-		            android:layout_marginTop="13px"
-		            android:background="@drawable/re_light" />
+		            android:layout_marginTop="13px" />
 					<LinearLayout
 		                android:layout_width="407px"
 		                android:layout_height="220px"
@@ -212,12 +215,19 @@
 			                android:gravity="center"
 			                android:singleLine="true"
 			                android:textColor="#000000"
-			                android:text="@string/announcement_title"
 			                android:textSize="30sp" />
+		    	        <TextView
+			                android:id="@+id/tv_date"
+			                android:layout_width="fill_parent"
+			                android:layout_height="wrap_content"
+			                android:gravity="right"
+			                android:singleLine="true"
+			                android:textColor="#000000"
+			                android:textSize="18sp" />
 		    	        <LinearLayout
 			                android:layout_width="fill_parent"
 			                android:layout_height="fill_parent"
-			            	android:layout_marginTop="20px"
+			            	android:layout_marginTop="5px"
 			            	android:gravity="center"
 			            	android:orientation="vertical" >
 			    	        <TextView
@@ -227,7 +237,6 @@
 				                android:gravity="center"
 				                android:textColor="#000000"
 				                android:lineSpacingExtra="10px"
-				                android:text="@string/announcement_content"
 				                android:textSize="22sp" />
 		    	        </LinearLayout>
 		            </LinearLayout>

@@ -3,8 +3,9 @@ package com.evaluation.service;
 import com.evaluation.control.AccountManager;
 import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.util.TcpConnect;
+import com.evaluation.view.*;
 
-import android.app.NotificationManager;
+import android.os.BatteryManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,11 +20,12 @@ public class HomeService extends Service{
 	 * 
 	 */
 	private static final String TAG = "effort";
-	//private TcpConnect iTCPConnect = null;
+	private TcpConnect iTCPConnect = null;
 	//public DatabaseAdapter mDataAdapter;
 	private final IBinder mBinder = new LocalBinder();
 	public boolean serviceOver = false;
 	private int value;
+//	private TcpConnect iTCPConnect = null;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -53,8 +55,11 @@ public class HomeService extends Service{
         
         IntentFilter homeFilter = new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
     	registerReceiver(homePressReceiver, homeFilter);
-    	Thread thread = new SendEvaluationThread();
-    	thread.start();
+    	registerReceiver(homePressReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+    	iTCPConnect = new TcpConnect((MyApplication)this.getApplication());
+        iTCPConnect.start();
+//        Thread thread = new UnConnectThread();
+//    	thread.start();
 	}
 
 	public int onStartCommand(Intent intent,int flags, int startId){
@@ -76,10 +81,10 @@ public class HomeService extends Service{
 		}
 		Log.e(TAG, "onStop");
 		serviceOver = true;
+		iTCPConnect.Close();
 		//Intent i = new Intent("RESTART_ACTIVITY");
 		//i.addFlags(Intent.flag);
 		//sendBroadcast(i);//传递过去
-		//iTCPConnect.Close();
 		super.onDestroy();
 	}
 	
@@ -99,22 +104,41 @@ public class HomeService extends Service{
 //					sendBroadcast(i);//传递过去
 //				}
 			}
+			if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
+				Intent i = new Intent("TIMEOUT");
+				int status = intent.getIntExtra("status", 0);
+				 switch (status) {
+				case BatteryManager.BATTERY_STATUS_UNKNOWN:
+					break;
+				case BatteryManager.BATTERY_STATUS_CHARGING:
+					break;
+				case BatteryManager.BATTERY_STATUS_DISCHARGING:
+					HomeService.this.sendBroadcast(i);
+					break;
+				case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
+					HomeService.this.sendBroadcast(i);
+					break;
+				case BatteryManager.BATTERY_STATUS_FULL:
+					break;
+				}
+			}
 		}
 	};
-	private class SendEvaluationThread extends Thread {
+	private class UnConnectThread extends Thread {
 		public void run() {
-			
 			while(!serviceOver){
 				try {
-					Thread.sleep(600 * 1000);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				Log.e(TAG, "定时上传保存的未上传评价");
-				AccountManager am = new AccountManager(HomeService.this);
-				am.sendEvaluation();
-				am.close();
+				int count = iTCPConnect.getCurrentLinkedSocketThreadNum();
+				Log.e(TAG, "定时检测socket连接数: " + count);
+				if(count < 1) {
+					Intent intent = new Intent("TIMEOUT");
+					HomeService.this.sendBroadcast(intent);
+				}
 			}
 		}
 	}

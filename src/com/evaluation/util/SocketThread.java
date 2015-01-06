@@ -6,11 +6,11 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
+import com.evaluation.protocol.DataHelper;
+import com.evaluation.protocol.DataType;
+import com.evaluation.protocol.PayLoad;
 import com.evaluation.view.EvaluationActivity;
 import com.evaluation.view.MyApplication;
-import com.evaluationo.protocol.DataHelper;
-import com.evaluationo.protocol.DataType;
-import com.evaluationo.protocol.PayLoad;
 
 import android.content.Context;
 import android.content.Intent;
@@ -39,19 +39,20 @@ public class SocketThread extends Thread {
 	}
 
 	public void run() {
-
+		int i = 0;
 		InputStream in = null;
 //		Looper.prepare();
 //		myLooper = Looper.myLooper();
 		while (keepAlive) {
+//			try {
+//				socket.setSoTimeout(6000);
+//			} catch (SocketException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//				return;
+//			}
 			try {
-				socket.setSoTimeout(6000);
-			} catch (SocketException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				return;
-			}
-			try {
+				socket.setSoTimeout(4000);
 				in = socket.getInputStream();
 
 				out = socket.getOutputStream();
@@ -83,10 +84,6 @@ public class SocketThread extends Thread {
 				case APPLY_EVALUATE:
 					needEvaluate = true;
 					Log.e("effort", "APPLY_EVALUATE");
-					Intent emptyIntent = new Intent(context,
-							EvaluationActivity.class);
-					emptyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					context.startActivity(emptyIntent);
 					break;
 				case LEAVE_INFO:
 					b[0] = DataHelper.BEGIN_BYTE;
@@ -107,7 +104,7 @@ public class SocketThread extends Thread {
 				default:
 					break;
 				}
-				if(needEvaluate){
+				if(needEvaluate && context.isEvaluatable()){
 //					if(firstTime){
 //					if(myLooper == null) {
 //						Looper.prepare();
@@ -127,7 +124,13 @@ public class SocketThread extends Thread {
 //					};
 //					Looper.loop();
 //					needEvaluate = false;
-					while(!context.isStatu()){
+					Intent emptyIntent = new Intent(context,
+							EvaluationActivity.class);
+					emptyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					context.startActivity(emptyIntent);
+					int heldtime = 0;
+					while(!context.isStatu() && heldtime < 10 * 10){
+						heldtime++;
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException e) {
@@ -144,14 +147,10 @@ public class SocketThread extends Thread {
 				}
 				out.write(b);
 				out.flush();
-			} catch (java.net.SocketTimeoutException e) {
-				e.printStackTrace();
-				keepAlive = false;
-				Intent intent = new Intent("TIMEOUT");
-				context.sendBroadcast(intent);
-			}catch (Exception e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				keepAlive = false;
 				Log.e(TAG, "SocketThread " + e.toString());
 			}
 		}
@@ -168,14 +167,17 @@ public class SocketThread extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
-			if(socket != null)
+			if(socket != null) {
 				try {
 					socket.close();
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			}
 		}
+		Intent intent = new Intent("TIMEOUT");
+		context.sendBroadcast(intent);
 		Log.e(TAG, "连接关闭");
 		tcpConnect.removeSocketThread(this);
 	}

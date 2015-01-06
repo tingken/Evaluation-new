@@ -37,12 +37,10 @@
 				android:id="@+id/select"
 				android:layout_width="34px"
 				android:layout_height="34px"
-				android:layout_marginRight="15px"
+				android:layout_marginRight="9px"
 				android:background="@drawable/select_down"
 				android:layout_alignBaseline="@id/et_zh"
-				android:layout_alignRight="@id/et_zh"
-				>
-				</Button>
+				android:layout_alignRight="@id/et_zh"/>
 		    </RelativeLayout>
 	        
 			<RelativeLayout

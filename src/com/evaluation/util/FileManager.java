@@ -11,6 +11,8 @@ import android.util.Log;
 public class FileManager {
 	private static String TAG = "effort";
 	public static boolean delete(String fileName) {
+		if(fileName == null || fileName.equals(""))
+			return true;
 		File file = new File(Environment.getExternalStorageDirectory().getPath(), fileName);
 		if(file.isDirectory()) {
 			Log.e(TAG, "It's a direcotory path,please input a file path");
