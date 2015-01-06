@@ -12,11 +12,14 @@ import java.util.concurrent.TimeUnit;
 import android.hardware.usb.UsbManager;
 import com.evaluation.control.AccountManager;
 import com.evaluation.control.AnnouncementManager;
+import com.evaluation.control.WebServiceManager;
 import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.model.Announcement;
+import com.evaluation.model.LeaveMessage;
 import com.evaluation.model.User;
 import com.evaluation.service.HomeService;
 import com.evaluation.util.CommonUtils;
+import com.evaluation.util.ComplaintDialog;
 import com.evaluation.util.DotView;
 import com.evaluation.util.LeaveDialog;
 import com.evaluation.util.PagerAdapter;
@@ -81,9 +84,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private String[] contents; //图片对应的正文
 	private ArrayList<View> dots; // 图片标题正文的那些点
 
+	private TextView leaveMessageView;
 	private ImageButton setting;
 	private ImageButton evaluation;
 	private Button quit;
+	private ImageButton complaint;
 	private TextView weekView;
 	private TextView dateView;
 	private TextView timeView;
@@ -118,6 +123,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private PowerManager powerManager;
 	private PowerManager.WakeLock wakeLock;
 	private LeaveDialog leaveDialog;// = new LeaveDialog(this, R.layout.layout_dialog, R.style.Theme_dialog);
+	private ComplaintDialog complaintDialog;
+	private LeaveMessage leaveMessage = new LeaveMessage();
 
 	// An ExecutorService that can schedule commands to run after a given delay,
 	// or to execute periodically.
@@ -142,6 +149,32 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 //	        	viewPager.setCurrentItem(currentItem);
 		};
 	};
+	
+	// 获取工作人员请假信息
+		private Handler leaveMessageHandler = new Handler() {
+			public void handleMessage(android.os.Message msg) {
+		        if(msg.what == 1) {
+		        	leaveMessageView.setText("请假中");
+		        	leaveMessageView.setBackgroundColor(Color.GRAY);
+		        	if(scheduledExecutorService != null) {
+		    			scheduledExecutorService.shutdown();
+		    			scheduledExecutorService = null;
+		    			//activityOver = false;
+		    			annosOk = false;
+		    		}
+		        	tv_content.setText(leaveMessage.getDescription());
+		        }else {
+		        	leaveMessageView.setText("正在服务");
+		        	leaveMessageView.setBackgroundColor(Color.GREEN);
+		        	if(scheduledExecutorService == null) {
+		    			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+		    			// 当Activity显示出来后，每两秒钟切换一次图片显示
+		    			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
+			        	annosOk = true;
+		    		}
+		        }
+			};
+		};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -172,10 +205,12 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			e.printStackTrace();
 		}
 		//Typeface MSFace = Typeface.createFromAsset(getAssets(),"fonts/MSYHBD.TTF");
-		dateView = (TextView) findViewById(R.id.date);
+        leaveMessageView = (TextView) findViewById(R.id.leave_message);
+        dateView = (TextView) findViewById(R.id.date);
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
 		setting = (ImageButton) findViewById(R.id.setting);
+		complaint = (ImageButton) findViewById(R.id.complaint);
 		
 		photoView = (ImageView) findViewById(R.id.photo);
 		userNameView = (TextView) findViewById(R.id.user_name);
@@ -242,13 +277,27 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		registerReceiver(mBroadcastReceiver, new IntentFilter("LEAVE_INFO"));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("BACK_INFO"));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("TIMEOUT"));
-		
+		registerReceiver(mBroadcastReceiver, new IntentFilter("COMPLAINT_SUCCESS"));
+		registerReceiver(mBroadcastReceiver, new IntentFilter("COMPLAINT_FAIL"));
+		registerReceiver(mBroadcastReceiver, new IntentFilter("COMPLAINT_RESULT"));
 		annoList = new ArrayList<Announcement>();
 		Thread annoThread = new AnnounThread();
 		annoThread.start();
 		
 		leaveDialog = new LeaveDialog(this, R.layout.layout_dialog, R.style.Theme_dialog);
 		leaveDialog.setCanceledOnTouchOutside(false);
+		complaintDialog = new ComplaintDialog(this, R.layout.complaint_dialog, R.style.Theme_dialog);
+		complaintDialog.setCanceledOnTouchOutside(false);
+		complaint.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				Intent intent = new Intent(MainActivity.this,ComplaintActivity.class);
+				MainActivity.this.startActivity(intent);
+			}
+			
+		});
 		startService();
 	}
 	
@@ -275,6 +324,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		activityOver = false;
 		Thread dateThread = new DateThread();
 		dateThread.start();
+		Thread leaveMessageThread = new LeaveMessageThread();
+		leaveMessageThread.start();
 		for(Button button : buttons) {
 			button.setEnabled(true);
 		}
@@ -292,6 +343,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			scheduledExecutorService = null;
 		}
 		leaveDialog.dismiss();
+		complaintDialog.dismiss();
 		activityOver = true;
 //		unbindService();
 		//stopService();
@@ -722,6 +774,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	    			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 	    		}
 	        	annosOk = true;
+	        }else if(intent.getAction().equals("COMPLAINT_SUCCESS")) {
+	        	leaveDialog.show("  您好，我们已收到你的投诉信息，感谢您的支持与监督！管理人员将于5分钟内到达处理，请您耐心等待！", 22, Color.BLACK, 4);
+	        }else if(intent.getAction().equals("COMPLAINT_FAIL")) {
+	        	leaveDialog.show("您的投诉发送失败，请重新填写！", 36, Color.BLACK, 4);
+	        }else if(intent.getAction().equals("COMPLAINT_RESULT")) {
+	        	String description = intent.getStringExtra("description");
+	        	leaveDialog.show(description, 22, Color.BLACK, 4);
 	        }else if(intent.getAction().equals("TIMEOUT")) {
 	        	if(scheduledExecutorService != null) {
 	    			scheduledExecutorService.shutdown();
@@ -857,5 +916,43 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			return false;
 		}
 		return time.after(new Date());
+	}
+	private boolean beforeNow(String date, String dateFormat) {
+		Date time=new Date();
+		SimpleDateFormat sd=new SimpleDateFormat(dateFormat);
+		try {
+			time = sd.parse(date);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.e(TAG, "输入的日期格式有误");
+			return false;
+		}
+		return time.before(new Date());
+	}
+	private class LeaveMessageThread extends Thread {
+		public void run() {
+			while(!activityOver) {
+				WebServiceManager wsm = new WebServiceManager(MainActivity.this);
+				leaveMessage = wsm.getDeviceUserStatus();
+				if(leaveMessage == null)
+					return;
+				String dateFormat = "";
+				if(beforeNow(leaveMessage.getStartDate(), dateFormat) && afterNow(leaveMessage.getEndDate(), dateFormat)) {
+					//请假中
+					leaveMessageHandler.sendEmptyMessage(1);
+				}else{
+					//正常工作中
+					leaveMessageHandler.sendEmptyMessage(2);
+				}
+				try {
+					Thread.sleep(20 * 60 * 1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					continue;
+				}
+			}
+		}
 	}
 }

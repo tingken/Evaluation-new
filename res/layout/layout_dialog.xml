@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
- xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+ 	xmlns:android="http://schemas.android.com/apk/res/android"
    android:orientation="vertical"
    android:layout_width="fill_parent"
    android:layout_height="fill_parent"
-   android:background="@drawable/pp_bg_dialog"
    android:gravity="center">
-         
-     <TextView android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="5dp"
-         android:text="工作人员暂时离开"
-         android:textSize="36px"
-         android:textColor="#c61820"/>
-     <TextView android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="10dp"
-         android:text="请稍等..."
-         android:textSize="36px"
-         android:textColor="#c61820"/>
-</LinearLayout>
+     <LinearLayout 
+		android:orientation="vertical"
+		android:layout_width="603px"
+		android:layout_height="235px"
+		android:background="#ffffff"
+		android:layout_marginTop="20px"
+		android:gravity="center">
+     	<TextView
+	         android:id="@+id/content"
+	         android:layout_width="500px"
+	         android:layout_height="wrap_content"
+	         android:layout_marginTop="5dp"
+	         android:textColor="#c61820"/>
+     </LinearLayout>
+     <ImageView 
+         android:id="@+id/cancel"
+         android:layout_width="40px"
+         android:layout_height="40px"
+         android:layout_marginLeft="583px"
+         android:background="@drawable/cancel_nor"/>
+</FrameLayout>

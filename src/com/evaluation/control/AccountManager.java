@@ -22,8 +22,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AccountManager {
-	//private String url = "http://125.71.200.138:8081/";//外网IP
-	private String url = "http://10.0.205.11:8081/";//内网IP
+	//private static String url = "http://125.71.200.138:8081/";//外网IP
+	private static String url = "http://10.0.205.11:8081/";//内网IP
 	private User user;
 	private DatabaseAdapter dba;
 	private Context context;
@@ -32,6 +32,9 @@ public class AccountManager {
 	private String WRONGPW = "WRONGPW";
 	private SharedPreferences sp;
 	private NetworkManager nm;
+	public static String getUrl() {
+		return url;
+	}
 
 	public AccountManager(Context context) {
 		this.context = context;
@@ -247,9 +250,13 @@ public class AccountManager {
 		}
 		dba.close();
 	}
-	public void autoLogin(User user) {
+	public boolean autoLogin(User user) {
 		dba = new DatabaseAdapter(context);
 		dba.open();
+		if(isConnect()){
+			dba.close();
+			return false;
+		}
 		dba.deleteAnnouncementByAccount(user.getAccount());
 		InputStream is = getPicture(user.getPhotoUrl());
 		String absolutePath = context.getFilesDir().getAbsolutePath();
@@ -274,5 +281,6 @@ public class AccountManager {
 		}
 		dba.close();
 		nm.close();
+		return true;
 	}
 }

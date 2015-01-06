@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical"
+    android:gravity="center" >
+    <EditText 
+        android:id="@+id/content"
+        android:layout_width="500px"
+        android:layout_height="300px"
+        android:textSize="18px"
+		android:inputType="textMultiLine"
+		android:gravity="left|top"
+        android:hint="请输入你要投诉的内容。"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+    	android:layout_height="wrap_content"
+    	android:gravity="center"
+    	android:orientation="horizontal">
+	    <Button
+	        android:id="@+id/cancel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="取消" />
+	    <Button
+	        android:id="@+id/submit"
+	        android:layout_marginLeft="20px"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="提交" />
+	</LinearLayout>
+</LinearLayout>

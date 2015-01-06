@@ -43,7 +43,6 @@ public class SocketThread extends Thread {
 		InputStream in = null;
 //		Looper.prepare();
 //		myLooper = Looper.myLooper();
-		int num = 0;
 		while (keepAlive) {
 //			try {
 //				socket.setSoTimeout(4000);
@@ -52,8 +51,6 @@ public class SocketThread extends Thread {
 //				e1.printStackTrace();
 //				return;
 //			}
-			num++;
-			Log.e(TAG, "SocketThread number: " + num);
 			try {
 				//socket.setKeepAlive(true);
 				socket.setSoTimeout(4000);

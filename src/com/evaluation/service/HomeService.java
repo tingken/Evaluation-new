@@ -1,5 +1,8 @@
 package com.evaluation.service;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.evaluation.control.AccountManager;
 import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.util.TcpConnect;
@@ -13,7 +16,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+import com.evaluation.control.WebServiceManager;
+import com.evaluation.model.ComplaintResult;
 
 public class HomeService extends Service{
 	/**
@@ -25,7 +31,7 @@ public class HomeService extends Service{
 	private final IBinder mBinder = new LocalBinder();
 	public boolean serviceOver = false;
 	private int value;
-//	private TcpConnect iTCPConnect = null;
+	
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -60,6 +66,7 @@ public class HomeService extends Service{
         iTCPConnect.start();
 //        Thread thread = new UnConnectThread();
 //    	thread.start();
+        
 	}
 
 	public int onStartCommand(Intent intent,int flags, int startId){
@@ -142,4 +149,5 @@ public class HomeService extends Service{
 			}
 		}
 	}
+	
 }
