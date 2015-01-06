@@ -736,7 +736,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 //	        		wakeLock.release();
 //	        		wakeLock = null;
 //	            }
-	        	Log.e(TAG, "time out,release wake lock");
+	        	//Log.e(TAG, "time out,release wake lock");
 //	        	if(wakeLock == null) {
 //		        	wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "My Tag");
 //		        	wakeLock.acquire();

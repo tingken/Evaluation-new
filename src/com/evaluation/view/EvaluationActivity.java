@@ -108,7 +108,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	public void onStart() {
 		Intent checkIntent = new Intent();
 		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-		//tts = new TextToSpeech(this, this);
+		tts = new TextToSpeech(this, this);
 		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
 		activityOver = false;
 		Thread dateThread = new DateThread();
@@ -120,14 +120,14 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 			Log.e(TAG, "resultCode: " + resultCode);
 			if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
 				// success, create the TTS instance
-				tts = new TextToSpeech(this, this);
+				//tts = new TextToSpeech(this, this);
 			} else {
 				// missing data, install it
-				Intent installIntent = new Intent();
-				installIntent
-						.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-				startActivity(installIntent);
-				toTtsSettings();
+//				Intent installIntent = new Intent();
+//				installIntent
+//						.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+//				startActivity(installIntent);
+//				toTtsSettings();
 			}
 		}
 
@@ -135,11 +135,10 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	@Override
 	public void onClick(View view) {
 		// TODO Auto-generated method stub
+		Log.e(TAG, "onClick");
 		int tag = (Integer)view.getTag();
 		for(ImageButton button : buttons) {
-			if((Integer)button.getTag() != tag) {
-				button.setEnabled(false);
-			}
+			button.setEnabled(false);
 		}
 		thanks.setText("谢谢您的评价，我们会努力做到更好。");
 		tts.speak("谢谢您的评价，我们会努力做到更好。", TextToSpeech.QUEUE_ADD, null);
@@ -179,20 +178,20 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 //		}
 //	}
 	private void sendData(int data){
-		((MyApplication)this.getApplication()).setValue(data);
-		((MyApplication)this.getApplication()).setStatu(true);
 		if(loginId != null && !loginId.trim().equals("")) {
 			Thread dataThread = new SendDataThread(data);
 			dataThread.start();
 		}
 		while(tts.isSpeaking()){
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(200);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		((MyApplication)this.getApplication()).setValue(data);
+		((MyApplication)this.getApplication()).setStatu(true);
 		EvaluationActivity.this.finish();
 	}
 	private class SendDataThread extends Thread{

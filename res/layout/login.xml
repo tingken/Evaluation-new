@@ -29,7 +29,7 @@
 				android:layout_width="fill_parent"
 				android:layout_height="fill_parent"
 				android:layout_marginLeft="15px"
-				android:textSize="18sp"
+				android:textSize="18px"
 				android:hint="用户名"
 				android:background="@null"
 				android:textColor="#ffffff"/>

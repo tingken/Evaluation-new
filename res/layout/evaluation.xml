@@ -27,7 +27,7 @@
             android:id="@+id/time"
             android:gravity="center"
             android:textColor="#FFFFFF"
-            android:textSize="30sp" />
+            android:textSize="30px" />
         <LinearLayout
             android:layout_width="110dp"
 			android:layout_height="fill_parent"
@@ -42,14 +42,14 @@
 	            android:id="@+id/week"
 	            android:gravity="center"
 	            android:textColor="#FFFFFF"
-	            android:textSize="20sp" />
+	            android:textSize="20px" />
 	        <TextView
 	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
 	            android:id="@+id/date"
 	            android:gravity="center"
 	            android:textColor="#FFFFFF"
-	            android:textSize="20sp" />
+	            android:textSize="20px" />
 		</LinearLayout>
 	</RelativeLayout>
 	<RelativeLayout
@@ -69,7 +69,7 @@
     	        android:layout_marginTop="80dp"
     	        android:gravity="center"
     	        android:textColor="#000000"
-    	        android:textSize="42sp"/>
+    	        android:textSize="42px"/>
     	    <LinearLayout
 			    android:layout_width="561dp"
 			    android:layout_height="140dp"
@@ -90,7 +90,7 @@
 				        android:text="非常满意"
 				        android:gravity="center"
 				        android:textColor="#000000"
-				        android:textSize="14sp"/>
+				        android:textSize="14px"/>
 				</LinearLayout>
 				<LinearLayout
 				    android:layout_width="93dp"
@@ -107,7 +107,7 @@
 				        android:text="基本满意"
 				        android:gravity="center"
 				        android:textColor="#000000"
-				        android:textSize="14sp"/>
+				        android:textSize="14px"/>
 				</LinearLayout>
 				<LinearLayout
 				    android:layout_width="93dp"
@@ -124,7 +124,7 @@
 				        android:text="有待改进"
 				        android:gravity="center"
 				        android:textColor="#000000"
-				        android:textSize="14sp"/>
+				        android:textSize="14px"/>
 				</LinearLayout>
 				<LinearLayout
 				    android:layout_width="93dp"
@@ -141,7 +141,7 @@
 				        android:text="业务不熟"
 				        android:gravity="center"
 				        android:textColor="#000000"
-				        android:textSize="14sp"/>
+				        android:textSize="14px"/>
 				</LinearLayout>
 				<LinearLayout
 				    android:layout_width="93dp"
@@ -158,7 +158,7 @@
 				        android:text="态度不好"
 				        android:gravity="center"
 				        android:textColor="#000000"
-				        android:textSize="14sp"/>
+				        android:textSize="14px"/>
 				</LinearLayout>
 				<LinearLayout
 				    android:layout_width="93dp"
@@ -175,7 +175,7 @@
 				        android:text="时间太长"
 				        android:gravity="center"
 				        android:textColor="#000000"
-				        android:textSize="14sp"/>
+				        android:textSize="14px"/>
 				</LinearLayout>
 			</LinearLayout>
 			<TextView 
@@ -185,7 +185,7 @@
     	        android:layout_marginTop="25dp"
     	        android:gravity="center"
     	        android:textColor="#000000"
-    	        android:textSize="18sp"/>
+    	        android:textSize="18px"/>
     </LinearLayout>
     </RelativeLayout>
 </LinearLayout>

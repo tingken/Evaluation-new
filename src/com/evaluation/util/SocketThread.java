@@ -23,7 +23,7 @@ public class SocketThread extends Thread {
 	private Socket socket = null;
 	TcpConnect tcpConnect;
 	private MyApplication context;
-	private boolean keepAlive = true;
+	private volatile boolean keepAlive = true;
 	private boolean statu = true;
 	private OutputStream out = null;
 	//private Handler mChildHandler;
@@ -43,15 +43,19 @@ public class SocketThread extends Thread {
 		InputStream in = null;
 //		Looper.prepare();
 //		myLooper = Looper.myLooper();
+		int num = 0;
 		while (keepAlive) {
 //			try {
-//				socket.setSoTimeout(6000);
+//				socket.setSoTimeout(4000);
 //			} catch (SocketException e1) {
 //				// TODO Auto-generated catch block
 //				e1.printStackTrace();
 //				return;
 //			}
+			num++;
+			Log.e(TAG, "SocketThread number: " + num);
 			try {
+				//socket.setKeepAlive(true);
 				socket.setSoTimeout(4000);
 				in = socket.getInputStream();
 
@@ -79,11 +83,17 @@ public class SocketThread extends Thread {
 					b[1] = DataType.RESPONSE.Flag();
 					b[2] = DataType.CLOSE_CONNECTION.Flag();
 					b[3] = DataHelper.END_BYTE;
+					Log.e(TAG, "关闭连接");
 					keepAlive = false;
 					break;
 				case APPLY_EVALUATE:
 					needEvaluate = true;
-					Log.e("effort", "APPLY_EVALUATE");
+					Intent emptyIntent = new Intent(context,
+							EvaluationActivity.class);
+					emptyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					context.startActivity(emptyIntent);
+					context.setStatu(false);
+					Log.e(TAG, "APPLY_EVALUATE");
 					break;
 				case LEAVE_INFO:
 					b[0] = DataHelper.BEGIN_BYTE;
@@ -104,7 +114,7 @@ public class SocketThread extends Thread {
 				default:
 					break;
 				}
-				if(needEvaluate && context.isEvaluatable()){
+				if(needEvaluate && context.isStatu()){
 //					if(firstTime){
 //					if(myLooper == null) {
 //						Looper.prepare();
@@ -124,24 +134,22 @@ public class SocketThread extends Thread {
 //					};
 //					Looper.loop();
 //					needEvaluate = false;
-					Intent emptyIntent = new Intent(context,
-							EvaluationActivity.class);
-					emptyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					context.startActivity(emptyIntent);
-					int heldtime = 0;
-					while(!context.isStatu() && heldtime < 10 * 10){
-						heldtime++;
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
+					
+//					int heldtime = 0;
+//					while(!context.isStatu() && heldtime < 10 * 10){
+//						heldtime++;
+//						try {
+//							Thread.sleep(100);
+//						} catch (InterruptedException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//					}
 					b[0] = DataHelper.BEGIN_BYTE;
 					b[1] = DataType.EVALUATE_RESULT.Flag();
 					b[2] = (byte)context.getValue();
 					b[3] = DataHelper.END_BYTE;
+					Log.e(TAG, "通过socket发送的评价结果: " + b[2]);
 					needEvaluate = false;
 					context.setStatu(false);
 				}
@@ -151,7 +159,7 @@ public class SocketThread extends Thread {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				keepAlive = false;
-				Log.e(TAG, "SocketThread " + e.toString());
+				Log.e(TAG, "Exception: SocketThread " + e.toString());
 			}
 		}
 		try {
@@ -178,7 +186,7 @@ public class SocketThread extends Thread {
 		}
 		Intent intent = new Intent("TIMEOUT");
 		context.sendBroadcast(intent);
-		Log.e(TAG, "连接关闭");
+		Log.e(TAG, "退出socket");
 		tcpConnect.removeSocketThread(this);
 	}
 	public void setNeedEvaluation(boolean statu) {

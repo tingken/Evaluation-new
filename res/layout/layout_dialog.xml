@@ -11,12 +11,12 @@
          android:layout_height="wrap_content"
          android:layout_marginTop="5dp"
          android:text="工作人员暂时离开"
-         android:textSize="36sp"
+         android:textSize="36px"
          android:textColor="#c61820"/>
      <TextView android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:layout_marginTop="10dp"
          android:text="请稍等..."
-         android:textSize="36sp"
+         android:textSize="36px"
          android:textColor="#c61820"/>
 </LinearLayout>

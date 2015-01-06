@@ -22,8 +22,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AccountManager {
-	private String url = "http://125.71.200.138:8081/";//外网IP
-	//private String url = "http://10.0.205.11:8081/";//内网IP
+	//private String url = "http://125.71.200.138:8081/";//外网IP
+	private String url = "http://10.0.205.11:8081/";//内网IP
 	private User user;
 	private DatabaseAdapter dba;
 	private Context context;

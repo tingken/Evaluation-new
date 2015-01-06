@@ -23,7 +23,7 @@
             android:id="@+id/time"
             android:gravity="center"
             android:textColor="#FFFFFF"
-            android:textSize="30sp" />
+            android:textSize="30px" />
         <LinearLayout
             android:layout_width="110dp"
 			android:layout_height="fill_parent"
@@ -38,14 +38,14 @@
 	            android:id="@+id/week"
 	            android:gravity="center"
 	            android:textColor="#FFFFFF"
-	            android:textSize="20sp" />
+	            android:textSize="20px" />
 	        <TextView
 	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
 	            android:id="@+id/date"
 	            android:gravity="center"
 	            android:textColor="#FFFFFF"
-	            android:textSize="20sp" />
+	            android:textSize="20px" />
 		</LinearLayout>
 	</RelativeLayout>
 	<RelativeLayout

@@ -23,7 +23,7 @@
             android:id="@+id/time"
             android:gravity="center"
             android:textColor="#FFFFFF"
-            android:textSize="30sp" />
+            android:textSize="30px" />
         <LinearLayout
             android:layout_width="110dp"
 			android:layout_height="fill_parent"
@@ -38,14 +38,14 @@
 	            android:id="@+id/week"
 	            android:gravity="center"
 	            android:textColor="#FFFFFF"
-	            android:textSize="20sp" />
+	            android:textSize="20px" />
 	        <TextView
 	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
 	            android:id="@+id/date"
 	            android:gravity="center"
 	            android:textColor="#FFFFFF"
-	            android:textSize="20sp" />
+	            android:textSize="20px" />
 		</LinearLayout>
 	</RelativeLayout>
 	<RelativeLayout
@@ -64,7 +64,7 @@
 		        android:gravity="center"
 		        android:text="标题为空"
 		        android:layout_marginTop="60dp"
-		        android:textSize="30sp"
+		        android:textSize="30px"
 		        android:textColor="#000000"/>
 	        <TextView 
 	            android:id="@+id/rep_date"
@@ -73,7 +73,7 @@
 		        android:layout_marginRight="20px"
 		        android:gravity="right"
 		        android:text=""
-		        android:textSize="20sp"
+		        android:textSize="20px"
 		        android:textColor="#000000"/>
 	        <TextView
 	            android:id="@+id/content"
@@ -81,7 +81,7 @@
 		        android:layout_height="270dp"
 		        android:text="无内容"
 		        android:layout_marginTop="10dp"
-		        android:textSize="20sp"
+		        android:textSize="20px"
 		        android:textColor="#000000"/>
 		</LinearLayout>
 	</RelativeLayout>

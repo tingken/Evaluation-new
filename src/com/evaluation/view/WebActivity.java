@@ -173,6 +173,7 @@ public class WebActivity extends Activity {
 			switch(msg.what){
 			case 1:
 				webView = new WebView(WebActivity.this);
+				webView.setWebViewClient(new webViewClient());
 				webView.setLayoutParams(new LinearLayout.LayoutParams(
 						LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 				webView.getSettings().setSupportZoom(true);
@@ -188,6 +189,7 @@ public class WebActivity extends Activity {
 			case 2:
 				if(isHtml(data)) {
 					webView = new WebView(WebActivity.this);
+					webView.setWebViewClient(new webViewClient());
 					webView.setLayoutParams(new LinearLayout.LayoutParams(
 							LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 					webView.getSettings().setSupportZoom(true);
@@ -211,6 +213,7 @@ public class WebActivity extends Activity {
 			case 3:
 				if(isHtml(data)) {
 					webView = new WebView(WebActivity.this);
+					webView.setWebViewClient(new webViewClient());
 					webView.setLayoutParams(new LinearLayout.LayoutParams(
 							LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 					webView.getSettings().setSupportZoom(true);
@@ -318,4 +321,13 @@ public class WebActivity extends Activity {
 	        }
 		}
 	};
+	class webViewClient extends WebViewClient{ 
+	       //重写shouldOverrideUrlLoading方法，使点击链接后不使用其他的浏览器打开。 
+	    @Override 
+	    public boolean shouldOverrideUrlLoading(WebView view, String url) { 
+	        view.loadUrl(url); 
+	        //如果不需要其他对点击链接事件的处理返回true，否则返回false 
+	        return true; 
+	    }
+	}
 }

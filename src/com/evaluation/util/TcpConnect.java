@@ -24,30 +24,31 @@ public class TcpConnect extends Thread {
 	    private Socket mClient;  
 	    private boolean iRunFlag = true;
 	    private MyApplication context;
-	    private List<SocketThread> threadList = new ArrayList<SocketThread>();
+	    private List<SocketThread> socketThreads = new ArrayList<SocketThread>();
 	    private String TAG = "effort";
 	public TcpConnect(MyApplication context) {
 		this.context = context;
 	}
 	public void Close()
 	{
-		for(SocketThread thread : threadList){
-			thread.close();
+		for(SocketThread socketThread : socketThreads){
+			socketThread.close();
 		}
 		iRunFlag = false;
 		//this.interrupt();
 	}
 	public int getCurrentLinkedSocketThreadNum() {
 		int count = 0;
-		for(Thread thread : threadList) {
-			if(thread.isAlive())
+		for(SocketThread socketThread : socketThreads){
+			if(socketThread.isAlive()){
 				count++;
+			}
 		}
 		return count;
 	}
 	public void setNeedEvaluation(boolean statu) {
-		for(SocketThread thread : threadList){
-			thread.setNeedEvaluation(statu);
+		for(SocketThread socketThread : socketThreads){
+			socketThread.setNeedEvaluation(statu);
 		}
 	}
 	public boolean isRunning()
@@ -84,9 +85,12 @@ public class TcpConnect extends Thread {
 	        try{                       
 				mClient = mServerSocket.accept();
 	            Log.e("effort","TcpConnect" + "检测到有连接");
-	            SocketThread thread = new SocketThread(this, mClient, context);
-	            thread.start();
-	            threadList.add(thread);
+//	            if(socketThread != null) {
+//	            	socketThread.close();
+//	            	socketThread.stop();
+//	            }
+	            SocketThread socketThread = new SocketThread(this, mClient, context);
+	            socketThread.start();
 	        }   
 	        catch(Exception e)
 	        {   
@@ -109,6 +113,6 @@ public class TcpConnect extends Thread {
 	}
 	
 	public void removeSocketThread(SocketThread thread){
-		threadList.remove(thread);
+		socketThreads.remove(thread);
 	}
 }

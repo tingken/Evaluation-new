@@ -19,7 +19,7 @@
 	        android:layout_marginLeft="8dp"
 	        android:text="@string/current_login"
 	        android:textColor="#000000"
-	        android:textSize="20sp" />
+	        android:textSize="20px" />
 	    <TextView
 	        android:id="@+id/setting_name"
 	        android:layout_width="fill_parent"
@@ -28,7 +28,7 @@
 	        android:layout_marginLeft="8dp"
 	        android:gravity="center"
 	        android:textColor="#000000"
-	        android:textSize="16sp" />
+	        android:textSize="16px" />
 	    <TextView
 	        android:id="@+id/em_no"
 	        android:layout_width="fill_parent"
@@ -37,7 +37,7 @@
 	        android:layout_marginLeft="8dp"
 	        android:gravity="center"
 	        android:textColor="#000000"
-	        android:textSize="16sp" />
+	        android:textSize="16px" />
 	    <TextView
 	        android:id="@+id/version"
 	        android:layout_width="fill_parent"
@@ -46,7 +46,7 @@
 	        android:layout_marginLeft="8dp"
 	        android:gravity="center"
 	        android:textColor="#000000"
-	        android:textSize="18sp" />
+	        android:textSize="18px" />
 	    <Button
 	        android:id="@+id/update"
 	        android:layout_width="194dp"
