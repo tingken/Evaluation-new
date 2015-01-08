@@ -57,7 +57,6 @@ public class NetworkManager {
             HttpEntity entity = response.getEntity();    
             if (entity != null) {    
                 out = EntityUtils.toString(entity, "UTF-8");    
-                Log.i(TAG, out);
             }
         }
         return out;
@@ -81,7 +80,6 @@ public class NetworkManager {
 				HttpEntity entity = response.getEntity();    
 	            if (entity != null) {    
 	                String out = EntityUtils.toString(entity, "UTF-8");    
-	                Log.i(TAG, out);
 	                return out;
 	            }
 			}catch(Exception e) {
@@ -124,7 +122,6 @@ public class NetworkManager {
 //				cb = new StringBody(data.get(key));
 //				postEntity.addPart(key, cb);
 //			}
-			Log.e(TAG, url);
 			open();
 			request.setURI(new URI(url));
 			//request.setEntity(postEntity);

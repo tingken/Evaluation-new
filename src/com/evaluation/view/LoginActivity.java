@@ -3,7 +3,7 @@ package com.evaluation.view;
 import java.util.List;
 
 import com.evaluation.control.AccountManager;
-import com.evaluation.dao.DatabaseAdapter;
+import com.evaluation.dao.DatabaseManager;
 import com.evaluation.model.User;
 import com.evaluation.util.DeletableAdapter;
 
@@ -61,7 +61,7 @@ public class LoginActivity extends Activity {
 	private Thread m_Thread;
 	private String TAG = "effort";
 	private boolean isLogining = false;
-	private DatabaseAdapter dba;
+	private DatabaseManager dba;
 
 	private String DISCONNECT = "DISCONNECT";
 	private String WRONGPW = "WRONGPW";
@@ -81,20 +81,20 @@ public class LoginActivity extends Activity {
 		// 引入窗口配置文件
 		View view = inflater.inflate(R.layout.select, null);
 		// 获得实例对象
-		sp = this.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
+		sp = this.getSharedPreferences("autoLogin", Context.MODE_WORLD_READABLE);
 		account = (EditText) findViewById(R.id.et_zh);
 		password = (EditText) findViewById(R.id.et_mima);
 		rem_pw = (CheckBox) findViewById(R.id.cb_mima);
 		// auto_login = (CheckBox) findViewById(R.id.cb_auto);
 		btn_login = (Button) findViewById(R.id.btn_login);
 		// btnQuit = (ImageButton)findViewById(R.id.img_btn);
-		dba = new DatabaseAdapter(this);
+		DatabaseManager.initializeInstance(this);
+		dba = DatabaseManager.getInstance();
 		dba.open();
 		accountManager = new AccountManager(this);
 		ListView accountListView = (ListView) view
 				.findViewById(R.id.accountList);
 
-		// 登录监听事件 现在默认为用户名为：admin 密码：admin
 		btn_login.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
@@ -289,7 +289,8 @@ public class LoginActivity extends Activity {
 	protected void onDestroy() {
 		dba.close();
 		accountManager.close();
-		logining.dismiss();
+		if(logining != null)
+			logining.dismiss();
 		super.onDestroy();
 	}
 	

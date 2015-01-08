@@ -1,5 +1,9 @@
 package com.evaluation.view;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -218,15 +222,19 @@ private View.OnClickListener submitClickListener = new View.OnClickListener() {
 	private void dealComplaintResult() {
 		if(complaintResult == null || complaintResult.getStatus() == null){
 			Intent intent = new Intent("COMPLAINT_FAIL");
+			if(complaintResult != null && !complaintResult.getDescription().equals(""))
+				intent.putExtra("description", complaintResult.getDescription());
 			ComplaintActivity.this.sendBroadcast(intent);
 			return;
 		}
-		if(complaintResult.getStatus().equals("1")) {
+		else if(complaintResult.getStatus().equals("1")) {
         	Intent intent = new Intent("COMPLAINT_SUCCESS");
+        	intent.putExtra("description", complaintResult.getDescription());
         	ComplaintActivity.this.sendBroadcast(intent);
 			getResponse(complaintResult.getKey());
 		}else{
 			Intent intent = new Intent("COMPLAINT_FAIL");
+			intent.putExtra("description", complaintResult.getDescription());
 			ComplaintActivity.this.sendBroadcast(intent);
 		}
 	}
@@ -284,7 +292,9 @@ private View.OnClickListener submitClickListener = new View.OnClickListener() {
 		public void run() {
 			int maxTime = Integer.parseInt(complaintResult.getMaxTime());
 			String key = complaintResult.getKey();
-			for(int i = 0; i < maxTime/60 ; i++) {
+			//String dateFormat = "yyyy-MM-dd HH:mm";
+			boolean threadOver = false;
+			for(int i = 0; i < maxTime && !threadOver; i++) {
 				try {
 					Thread.sleep(60 * 1000);
 				} catch (InterruptedException e) {
@@ -296,10 +306,23 @@ private View.OnClickListener submitClickListener = new View.OnClickListener() {
 					Intent intent = new Intent("COMPLAINT_RESULT");
 					intent.putExtra("description", dealResult.getDescription());
 					ComplaintActivity.this.sendBroadcast(intent);
+					threadOver = true;
 				}
-	        	
 			}
 		}
+	}
+	private boolean afterNow(String date, String dateFormat) {
+		Date time=new Date();
+		SimpleDateFormat sd=new SimpleDateFormat(dateFormat);
+		try {
+			time = sd.parse(date);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.e(TAG, "输入的日期格式有误");
+			return false;
+		}
+		return time.after(new Date());
 	}
 	@Override
     public boolean dispatchTouchEvent(MotionEvent ev) {

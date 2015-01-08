@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -51,6 +52,7 @@ public class WebActivity extends Activity {
 	private String timeValue;
 	private String TAG = "effort";
 	private boolean activityOver = false;
+	private SharedPreferences sp;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -68,8 +70,10 @@ public class WebActivity extends Activity {
 //		webView.getSettings().setJavaScriptEnabled(true);
 //		webView.getSettings().setBuiltInZoomControls(true);
 //		webLayout.addView(webView);
+		sp = this.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
 		tag = this.getIntent().getIntExtra("tag", 0);
-		loginId = this.getIntent().getStringExtra("loginId");
+		//loginId = this.getIntent().getStringExtra("loginId");
+		loginId = sp.getString("loginId", "");
 //		String url = this.getIntent().getStringExtra("url");
 //		String content = this.getIntent().getStringExtra("content");
 //		String title = this.getIntent().getStringExtra("title");

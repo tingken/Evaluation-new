@@ -11,7 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.evaluation.dao.DatabaseAdapter;
+import com.evaluation.dao.DatabaseManager;
 import com.evaluation.model.Announcement;
 import com.evaluation.model.Evaluation;
 import com.evaluation.model.User;
@@ -25,7 +25,7 @@ public class AccountManager {
 	//private static String url = "http://125.71.200.138:8081/";//外网IP
 	private static String url = "http://10.0.205.11:8081/";//内网IP
 	private User user;
-	private DatabaseAdapter dba;
+	private DatabaseManager dba;
 	private Context context;
 	private String TAG = "effort";
 	private String DISCONNECT = "DISCONNECT";
@@ -40,7 +40,8 @@ public class AccountManager {
 		this.context = context;
 		nm = new NetworkManager();
 		// 获得实例对象
-		sp = context.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
+		DatabaseManager.initializeInstance(context);
+		sp = context.getSharedPreferences("autoLogin", Context.MODE_WORLD_READABLE);
 	}
 	public boolean isConnect() {
 		boolean statu = nm.isConnect(url);
@@ -49,7 +50,7 @@ public class AccountManager {
 	}
 	// 登录后返回一个ID
 	public String login(User user) {
-		dba = new DatabaseAdapter(context);
+		dba = DatabaseManager.getInstance();
 		dba.open();
 		if(!isConnect()){
 			Log.e(TAG, "The network is not connect.");
@@ -200,7 +201,7 @@ public class AccountManager {
 		return data;
 	}
 	public void deleteUserByAccount(String account) {
-		dba = new DatabaseAdapter(context);
+		dba = DatabaseManager.getInstance();
 		dba.open();
 		dba.deleteAccount(account);
 		dba.deleteAnnouncementByAccount(account);
@@ -209,17 +210,15 @@ public class AccountManager {
 	public void close() {
 		if(nm != null)
 			nm.close();
-		if(dba != null)
-			dba.close();
 	}
 	public void saveEvaluation(Evaluation eval) {
-		dba = new DatabaseAdapter(context);
+		dba = DatabaseManager.getInstance();
 		dba.open();
 		dba.insertEvaluation(eval);
 		dba.close();
 	}
 	public void sendEvaluation() {
-		dba = new DatabaseAdapter(context);
+		dba = DatabaseManager.getInstance();
 		dba.open();
 		List<Evaluation> evaList = dba.findAllEvaluation();
 		if(evaList.size() < 1)
@@ -251,9 +250,9 @@ public class AccountManager {
 		dba.close();
 	}
 	public boolean autoLogin(User user) {
-		dba = new DatabaseAdapter(context);
+		dba = DatabaseManager.getInstance();
 		dba.open();
-		if(isConnect()){
+		if(!isConnect()){
 			dba.close();
 			return false;
 		}

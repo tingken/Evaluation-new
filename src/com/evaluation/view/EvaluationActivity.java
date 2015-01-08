@@ -7,16 +7,19 @@ import com.evaluation.model.Evaluation;
 import com.evaluation.model.User;
 import com.evaluation.service.HomeService;
 import com.evaluation.control.*;
-import com.evaluation.dao.DatabaseAdapter;
+import com.evaluation.dao.DatabaseManager;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.text.format.DateFormat;
@@ -47,9 +50,11 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	private TextView thanks;
 	private String account = "";
 	private String loginId = "";
-	private TextToSpeech tts;
+//	private TextToSpeech tts;
 	private String TAG = "effort";
 	private int MY_DATA_CHECK_CODE = 0;
+	private boolean _isBound;
+	private HomeService _boundService;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -100,38 +105,39 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 		thanks = (TextView) findViewById(R.id.thanks);
 		registerReceiver(mBroadcastReceiver, new IntentFilter("TIMEOUT"));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("LEAVE_INFO"));
-//		Thread dateThread = new DateThread();
-//		dateThread.start();
-		
+		startService();
+		bindService();
 	}
 	@Override
 	public void onStart() {
-		Intent checkIntent = new Intent();
-		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-		tts = new TextToSpeech(this, this);
-		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
+//		Intent checkIntent = new Intent();
+//		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+////		tts = new TextToSpeech(this, this);
+//		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
+		
 		activityOver = false;
 		Thread dateThread = new DateThread();
 		dateThread.start();
+		
 		super.onStart();
 	}
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == MY_DATA_CHECK_CODE) {
-			Log.e(TAG, "resultCode: " + resultCode);
-			if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-				// success, create the TTS instance
-				//tts = new TextToSpeech(this, this);
-			} else {
-				// missing data, install it
+//	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//		if (requestCode == MY_DATA_CHECK_CODE) {
+//			Log.e(TAG, "resultCode: " + resultCode);
+//			if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+//				// success, create the TTS instance
+//				tts = new TextToSpeech(this, this);
+//			} else {
+//				// missing data, install it
 //				Intent installIntent = new Intent();
 //				installIntent
 //						.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
 //				startActivity(installIntent);
 //				toTtsSettings();
-			}
-		}
-
-	}
+//			}
+//		}
+//
+//	}
 	@Override
 	public void onClick(View view) {
 		// TODO Auto-generated method stub
@@ -141,31 +147,32 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 			button.setEnabled(false);
 		}
 		thanks.setText("谢谢您的评价，我们会努力做到更好。");
-		tts.speak("谢谢您的评价，我们会努力做到更好。", TextToSpeech.QUEUE_ADD, null);
+		//tts.speak("谢谢您的评价，我们会努力做到更好。", TextToSpeech.QUEUE_ADD, null);
+		_boundService.setWords("谢谢您的评价，我们会努力做到更好。");
 		switch(tag){
 		case 0:
 			button0.setBackgroundResource(R.drawable.face_sel);
-			sendData(1);
+			saveData(1);
 			break;
 		case 1:
 			button1.setBackgroundResource(R.drawable.face_sel);
-			sendData(2);
+			saveData(2);
 			break;
 		case 2:
 			button2.setBackgroundResource(R.drawable.face_sel);
-			sendData(3);
+			saveData(3);
 			break;
 		case 3:
 			button3.setBackgroundResource(R.drawable.face_sel);
-			sendData(4);
+			saveData(4);
 			break;
 		case 4:
 			button4.setBackgroundResource(R.drawable.face_sel);
-			sendData(5);
+			saveData(5);
 			break;
 		case 5:
 			button5.setBackgroundResource(R.drawable.face_sel);
-			sendData(6);
+			saveData(6);
 			break;
 		default :
 			break;
@@ -177,47 +184,50 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 //				(Button)Class.forName("button" + i).
 //		}
 //	}
-	private void sendData(int data){
+	private void saveData(int data){
 		if(loginId != null && !loginId.trim().equals("")) {
-			Thread dataThread = new SendDataThread(data);
+			Evaluation eval = new Evaluation();
+			eval.setAccount(account);
+			eval.setValue(String.valueOf(data));
+			DatabaseManager.initializeInstance(EvaluationActivity.this);
+			DatabaseManager dba = DatabaseManager.getInstance();
+			dba.open();
+			User user = dba.findUserByAccount(account);
+			eval.setPassword(user.getPassword());
+			dba.insertEvaluation(eval);
+			dba.close();
+			Log.e(TAG, "评价信息已保存到数据库。");
+			
+			Thread dataThread = new SaveDataThread(data);
 			dataThread.start();
 		}
-		while(tts.isSpeaking()){
+		
+	}
+	private class SaveDataThread extends Thread{
+		private int data;
+		public SaveDataThread(int data){
+			this.data = data;
+		}
+		public void run() {
 			try {
-				Thread.sleep(200);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
-		((MyApplication)this.getApplication()).setValue(data);
-		((MyApplication)this.getApplication()).setStatu(true);
-		EvaluationActivity.this.finish();
-	}
-	private class SendDataThread extends Thread{
-		private int data;
-		public SendDataThread(int data){
-			this.data = data;
-		}
-		public void run() {
-			AccountManager am = new AccountManager(EvaluationActivity.this);
-			if(am.postData(loginId, String.valueOf(data)))
-				Log.e(TAG, "评价上传成功!");
-			else {
-				Evaluation eval = new Evaluation();
-				eval.setAccount(account);
-				eval.setValue(String.valueOf(data));
-				DatabaseAdapter dba = new DatabaseAdapter(EvaluationActivity.this);
-				dba.open();
-				User user = dba.findUserByAccount(account);
-				eval.setPassword(user.getPassword());
-				am.saveEvaluation(eval);
-				dba.close();
-				Log.e(TAG, "评价上传失败，保存到数据库。");
-			}
-			am.close();
+			handler.sendEmptyMessage(data);
+
 		}
 	}
+	
+	private Handler handler = new Handler() {
+		public void handleMessage(android.os.Message msg) {
+			((MyApplication)getApplication()).setValue(msg.what);
+			((MyApplication)getApplication()).setStatu(true);
+			finish();
+		};
+	};
+	
 	/**
 	 * 修改标题栏上的时间
 	 */
@@ -266,12 +276,15 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	@Override
 	protected void onStop() {
 		// 当Activity不可见的时候停止切换
+		Log.e(TAG, "onStop");
 		activityOver = true;
 		super.onStop();
 	}
 	@Override
 	protected void onDestroy() {
-		tts.shutdown();
+//		tts.shutdown();
+		Log.e(TAG, "onDestroy");
+		unbindService();
 		if(mBroadcastReceiver != null)
 			this.unregisterReceiver(mBroadcastReceiver);
 		super.onDestroy();
@@ -281,7 +294,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 		// TODO Auto-generated method stub
 		if (status == TextToSpeech.SUCCESS) {
 			Log.e(TAG, "Text-To-Speech engine is initialized");
-			tts.speak("请对本次服务进行评价！", TextToSpeech.QUEUE_ADD, null);
+//			tts.speak("请对本次服务进行评价！", TextToSpeech.QUEUE_ADD, null);
 		} else if (status == TextToSpeech.ERROR) {
 			Log.e(TAG, "Error occurred while initializing Text-To-Speech engine");
 		}
@@ -309,4 +322,38 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	        }
 		}
 	};
+	private ServiceConnection _connection = new ServiceConnection(){
+		public void onServiceConnected(ComponentName className, IBinder Service){
+			_boundService = ((HomeService.LocalBinder)Service).getService();
+			_boundService.setWords("请对本次服务进行评价！");
+			//Toast.makeText(MainActivity.this, "Service connected", Toast.LENGTH_SHORT).show();
+		}
+		public void onServiceDisconnected(ComponentName className){
+			//
+			_boundService = null;
+			//Toast.makeText(MainActivity.this, "Service disconnected", Toast.LENGTH_SHORT).show();
+		}
+	};
+	
+	private void startService(){
+		Intent i = new Intent(this, HomeService.class);
+		this.startService(i);
+	}
+	private void stopService(){
+		Intent i = new Intent(this, HomeService.class);
+		this.stopService(i);
+	}
+	private void bindService(){
+		Log.e(TAG, "================>Main.bindService");
+		Intent i = new Intent(this, HomeService.class);
+		this.bindService(i, _connection, Context.BIND_AUTO_CREATE);
+		_isBound = true;
+	}
+	private void unbindService(){
+		Log.e(TAG, "================>Main.unbindService");
+		if(_isBound){
+			unbindService(_connection);
+			_isBound = false;
+		}
+	}
 }

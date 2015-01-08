@@ -11,6 +11,7 @@ public class User {
 	private String photoName;
 	private String photoUrl;
 	private String operation;
+	private String loginDate;
 	public String getAccount() {
 		return account;
 	}
@@ -64,5 +65,11 @@ public class User {
 	}
 	public void setOperation(String operation) {
 		this.operation = operation;
+	}
+	public String getLoginDate() {
+		return loginDate;
+	}
+	public void setLoginDate(String loginDate) {
+		this.loginDate = loginDate;
 	}
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,7 @@ public class DeletableAdapter extends BaseAdapter {
 	private PopupWindow pop;
 	private EditText userName;
 	private EditText password;
+	private String TAG = "effort";
 
 	public DeletableAdapter(Context context, List<User> userList, PopupWindow pop, EditText userName, EditText password) {
 		this.context = context;

@@ -3,7 +3,7 @@ package com.evaluation.view;
 import java.util.List;
 
 import com.evaluation.control.AnnouncementManager;
-import com.evaluation.dao.DatabaseAdapter;
+import com.evaluation.dao.DatabaseManager;
 import com.evaluation.model.Announcement;
 
 import android.app.Activity;
@@ -30,7 +30,7 @@ import android.widget.TextView;
 
 public class InfoDetailActivity extends Activity implements OnGestureListener {
 	private int currentItem;
-	private DatabaseAdapter dba;
+	private DatabaseManager dba;
 	private List<Announcement> annoList;
 	private String account;
 	private ImageButton back;
@@ -58,7 +58,8 @@ public class InfoDetailActivity extends Activity implements OnGestureListener {
 		currentItem = this.getIntent().getIntExtra("currentItem", -1);
 		account = this.getIntent().getStringExtra("account");
 		Log.e(TAG, account + "-" + currentItem);
-		dba = new DatabaseAdapter(this);
+		DatabaseManager.initializeInstance(this);
+		dba = DatabaseManager.getInstance();
 		dba.open();
 		annoList = dba.findAnnouncementsByAccount(account);
         gd = new GestureDetector(this);

@@ -3,6 +3,7 @@ package com.evaluation.control;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ksoap2.SoapEnvelope;
+import org.ksoap2.SoapFault;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
@@ -33,7 +34,7 @@ public class WebServiceManager {
 		URL = AccountManager.getUrl();
 		endPoint = URL + endPoint;
 		this.context = context;
-		deviceKey = this.getDeviceId();
+		deviceKey = this.getLocalMacAddress();
 	}
 	public LeaveMessage getDeviceUserStatus() {
 		init("GetDeviceUserStatus");
@@ -84,7 +85,7 @@ public class WebServiceManager {
 	}
 	public SoapObject getRemoteInfo() {  
         // 生成调用WebService方法的SOAP请求信息,并指定SOAP的版本  
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER10);  
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);  
   
         envelope.bodyOut = rpc;  
         // 设置是否调用的是dotNet开发的WebService  
@@ -95,13 +96,13 @@ public class WebServiceManager {
         HttpTransportSE transport = new HttpTransportSE(endPoint);  
         try {  
             // 调用WebService  
-            transport.call(soapAction, envelope);  
+            transport.call(soapAction, envelope);
         } catch (Exception e) {  
             e.printStackTrace();  
         }  
   
         // 获取返回的数据  
-        SoapObject object = (SoapObject) envelope.bodyIn;  
+        SoapObject object = (SoapObject) envelope.bodyIn;
         // 获取返回的结果  
 //        String result = object.getProperty("GetDeviceUserStatusResult").toString();
 //        return result;

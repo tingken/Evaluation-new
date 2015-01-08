@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evaluation.model.Announcement;
 import com.evaluation.model.Evaluation;
@@ -25,7 +26,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 
-public class DatabaseAdapter {
+public class DatabaseManager {
 	private static final String TAG = "effort";
 	public static final String KEY_ID = "ID";
 	public static final String KEY_TITLE = "item";
@@ -37,7 +38,7 @@ public class DatabaseAdapter {
 	private static final String ACCEPTBUIZ_TABLE = "ACCEPTBUIZ";
 	private static final String EVALUATION_TABLE = "EVALUATION";
 	private static final int DB_VERSION = 3;
-	private Context mContext = null;
+	private static Context mContext = null;
 	private String[] userColumn = new String[] {"ACCOUNT", "PASSWORD", "LOGIN_ID", "NAME", "ORG", "WORKNO", "PHOTO_NAME", "PHOTO_URL", "OPERATION", "TIME"};
 	private String[] annoColumn = {"ID", "USER_ACCOUNT", "IMAGE_NAME", "IMAGE_URL", "TITLE", "CONTENT", "ISSUE_DATE", "OUTOF_DATE"};
 	private String[] evaluationColumn = {"ID", "EVALUATION", "USER_ACCOUNT", "PASSWORD"};
@@ -76,6 +77,8 @@ public class DatabaseAdapter {
 												+ "USER_ACCOUNT TEXT,"
 												+ "PASSWORD TEXT)";
 	//
+	private static DatabaseManager instance;
+	private AtomicInteger mOpenCounter = new AtomicInteger();
 	private SQLiteDatabase mSQLiteDatabase = null;
 	private DatabaseHelper mDatabaseHelper = null;
 	
@@ -111,16 +114,37 @@ public class DatabaseAdapter {
 			onCreate(db);
 		}
 	}
-	public DatabaseAdapter(Context context) {
-		mContext = context;
+//	public DatabaseManager(Context context) {
+//		mContext = context;
+//	}
+
+	public static synchronized void initializeInstance(Context context) {
+		if (instance == null) {
+			instance = new DatabaseManager();
+			mContext = context;
+		}
 	}
-	public void open() throws SQLException{
-		mDatabaseHelper = new DatabaseHelper(mContext);
-		Log.e(TAG, "DatabaseAdapter.open");
-		mSQLiteDatabase = mDatabaseHelper.getWritableDatabase();
+
+	public static synchronized DatabaseManager getInstance() {
+		if (instance == null) {
+			throw new IllegalStateException(
+					DatabaseManager.class.getSimpleName()
+							+ " is not initialized, call initializeInstance(..) method first.");
+		}
+
+		return instance;
 	}
-	public void close(){
-		mDatabaseHelper.close();
+	public synchronized void open() throws SQLException{
+		if(mOpenCounter.incrementAndGet() == 1) {
+			mDatabaseHelper = new DatabaseHelper(mContext);
+			Log.e(TAG, "DatabaseAdapter.open");
+			mSQLiteDatabase = mDatabaseHelper.getWritableDatabase();
+		}
+	}
+	public synchronized void close(){
+		if(mOpenCounter.decrementAndGet() == 0) {
+			mDatabaseHelper.close();
+		}
 	}
 	public long insertUserInfo(User user) {
 		ContentValues initialValues = new ContentValues();
@@ -407,6 +431,7 @@ public class DatabaseAdapter {
 			user.setPhotoUrl(map.get("PHOTO_URL"));
 			user.setWorkNum(map.get("WORKNO"));
 			user.setOperation(map.get("OPERATION"));
+			user.setLoginDate(map.get("TIME"));
 			userList.add(user);
 		}
 		return userList;

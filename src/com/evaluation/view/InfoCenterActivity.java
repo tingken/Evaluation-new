@@ -2,7 +2,7 @@ package com.evaluation.view;
 
 import java.util.List;
 
-import com.evaluation.dao.DatabaseAdapter;
+import com.evaluation.dao.DatabaseManager;
 import com.evaluation.model.Announcement;
 import com.evaluation.util.GestureListView;
 import com.evaluation.util.InfoListAdapter;
@@ -36,7 +36,7 @@ import android.view.View.OnTouchListener;
 
 public class InfoCenterActivity extends Activity implements OnPageChangeListener {
 	private int currentItem;
-	private DatabaseAdapter dba;
+	private DatabaseManager dba;
 	private List<Announcement> annoList;
 	private List<Announcement> curList;
 	private String account;
@@ -62,8 +62,8 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.info_center);
 		account = this.getIntent().getStringExtra("account");
-		
-		dba = new DatabaseAdapter(this);
+		DatabaseManager.initializeInstance(this);
+		dba = DatabaseManager.getInstance();
 		dba.open();
 		annoList = dba.findAnnouncementsByAccount(account);
         dateView = (TextView) findViewById(R.id.date);

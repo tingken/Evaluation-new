@@ -13,7 +13,7 @@ import android.hardware.usb.UsbManager;
 import com.evaluation.control.AccountManager;
 import com.evaluation.control.AnnouncementManager;
 import com.evaluation.control.WebServiceManager;
-import com.evaluation.dao.DatabaseAdapter;
+import com.evaluation.dao.DatabaseManager;
 import com.evaluation.model.Announcement;
 import com.evaluation.model.LeaveMessage;
 import com.evaluation.model.User;
@@ -22,10 +22,13 @@ import com.evaluation.util.CommonUtils;
 import com.evaluation.util.ComplaintDialog;
 import com.evaluation.util.DotView;
 import com.evaluation.util.LeaveDialog;
+import com.evaluation.util.MarqueeView;
 import com.evaluation.util.PagerAdapter;
 import com.evaluation.util.VerticalViewPager;
 import com.evaluation.util.VerticalViewPager.OnPageChangeListener;
 
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -39,6 +42,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
@@ -93,8 +97,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private TextView dateView;
 	private TextView timeView;
 	private ImageView photoView;
-	private TextView userNameView, accountView, orgView;
+	private MarqueeView userNameView, accountView, orgView;
 	private TextView settingName, emNo, version;
+	private MarqueeView macAddr;
 	private String dateValue;
 	private String weekValue;
 	private String timeValue;
@@ -104,7 +109,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private TextView acceptBiz;
 	private int currentItem = 0; // 当前图片的索引号
 	private Handler announHandler = new AnnounHandler();
-	private DatabaseAdapter dba;
+	private DatabaseManager dba;
+	private SharedPreferences sp;
 	private String loginId;
 	private String account;
 	private User user;
@@ -162,6 +168,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		    			//activityOver = false;
 		    			annosOk = false;
 		    		}
+		        	tv_title.setText("");
+		        	tv_date.setText("");
 		        	tv_content.setText(leaveMessage.getDescription());
 		        }else {
 		        	leaveMessageView.setText("正在服务");
@@ -194,6 +202,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
         ((MyApplication)this.getApplication()).addActivity(this);
         account = this.getIntent().getStringExtra("account");
 		loginId = this.getIntent().getStringExtra("loginId");
+		sp = this.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
+		sp.edit().putString("account", account).commit();
+		sp.edit().putString("loginId", loginId).commit();
 		((MyApplication)this.getApplication()).setAccount(account);
 		((MyApplication)this.getApplication()).setLoginId(loginId);
 		((MyApplication)this.getApplication()).setEvaluatable(true);
@@ -213,12 +224,12 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		complaint = (ImageButton) findViewById(R.id.complaint);
 		
 		photoView = (ImageView) findViewById(R.id.photo);
-		userNameView = (TextView) findViewById(R.id.user_name);
+		userNameView = (MarqueeView) findViewById(R.id.user_name);
 		//userNameView.setTypeface(MSFace); //微软雅黑
-		accountView = (TextView) findViewById(R.id.account);
+		accountView = (MarqueeView) findViewById(R.id.account);
 		accountView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG ); //下划线
 		accountView.getPaint().setAntiAlias(true);//抗锯齿
-		orgView = (TextView) findViewById(R.id.org);
+		orgView = (MarqueeView) findViewById(R.id.org);
 		orgView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG ); //下划线
 		orgView.getPaint().setAntiAlias(true);//抗锯齿
 		
@@ -357,6 +368,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			bitmap.recycle();
 			bitmap = null;
 		}
+		sp.edit().remove("account");
+		sp.edit().remove("loginId");
 		stopService();
 		((MyApplication)this.getApplication()).setLoginId("");
 		if(mBroadcastReceiver != null)
@@ -569,7 +582,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	
 	private class AnnounThread extends Thread {
 		public void run() {
-			dba = new DatabaseAdapter(MainActivity.this);
+			DatabaseManager.initializeInstance(MainActivity.this);
+			dba = DatabaseManager.getInstance();
 			dba.open();
 			user = dba.findUserByAccount(account);
 			String absolutePath = getFilesDir().getAbsolutePath();
@@ -693,6 +707,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			}
 			version = (TextView) view.findViewById(R.id.version);
 			version.setText("版本号:" + versionNo);
+
+	        macAddr = (MarqueeView) view.findViewById(R.id.deviceId);
+	        macAddr.setText("机器码:" + getLocalMacAddress());
 	        quit = (Button) view.findViewById(R.id.quit);
 	        quit.setOnClickListener(new View.OnClickListener() {
 				
@@ -775,12 +792,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	    		}
 	        	annosOk = true;
 	        }else if(intent.getAction().equals("COMPLAINT_SUCCESS")) {
-	        	leaveDialog.show("  您好，我们已收到你的投诉信息，感谢您的支持与监督！管理人员将于5分钟内到达处理，请您耐心等待！", 22, Color.BLACK, 4);
+	        	leaveDialog.show(intent.getStringExtra("description"), 22, Color.BLACK, 60);
 	        }else if(intent.getAction().equals("COMPLAINT_FAIL")) {
-	        	leaveDialog.show("您的投诉发送失败，请重新填写！", 36, Color.BLACK, 4);
+	        	String showContent = intent.getStringExtra("description");
+	        	if(showContent != null && !showContent.equals(""))
+	        		leaveDialog.show(showContent, 36, Color.BLACK, 60);
+	        	leaveDialog.show("您的投诉发送失败，请重新填写！", 36, Color.BLACK, 60);
 	        }else if(intent.getAction().equals("COMPLAINT_RESULT")) {
 	        	String description = intent.getStringExtra("description");
-	        	leaveDialog.show(description, 22, Color.BLACK, 4);
+	        	leaveDialog.show(description, 22, Color.BLACK, 60);
 	        }else if(intent.getAction().equals("TIMEOUT")) {
 	        	if(scheduledExecutorService != null) {
 	    			scheduledExecutorService.shutdown();
@@ -937,7 +957,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 				leaveMessage = wsm.getDeviceUserStatus();
 				if(leaveMessage == null)
 					return;
-				String dateFormat = "";
+				String dateFormat = "yyyy-MM-dd HH:mm";
 				if(beforeNow(leaveMessage.getStartDate(), dateFormat) && afterNow(leaveMessage.getEndDate(), dateFormat)) {
 					//请假中
 					leaveMessageHandler.sendEmptyMessage(1);
@@ -955,4 +975,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			}
 		}
 	}
+	public String getLocalMacAddress() {  
+        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);  
+        WifiInfo info = wifi.getConnectionInfo();  
+        return info.getMacAddress();  
+    }
 }

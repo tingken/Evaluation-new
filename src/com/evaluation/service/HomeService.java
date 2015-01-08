@@ -4,24 +4,26 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.evaluation.control.AccountManager;
-import com.evaluation.dao.DatabaseAdapter;
 import com.evaluation.util.TcpConnect;
 import com.evaluation.view.*;
 
 import android.os.BatteryManager;
 import android.app.Service;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import com.evaluation.control.WebServiceManager;
 import com.evaluation.model.ComplaintResult;
 
-public class HomeService extends Service{
+public class HomeService extends Service implements OnInitListener {
 	/**
 	 * 
 	 */
@@ -31,7 +33,8 @@ public class HomeService extends Service{
 	private final IBinder mBinder = new LocalBinder();
 	public boolean serviceOver = false;
 	private int value;
-	
+	private TextToSpeech tts;
+	private int MY_DATA_CHECK_CODE = 0;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -44,6 +47,10 @@ public class HomeService extends Service{
 	}
 	public void setValue(int value) {
 		this.value = value;
+	}
+	public void setWords(String words) {
+		Log.e(TAG, "HomeService.setWords: (" + words + ")");
+		tts.speak(words, TextToSpeech.QUEUE_ADD, null);
 	}
 	public class LocalBinder extends Binder{
 		public HomeService getService(){
@@ -66,17 +73,23 @@ public class HomeService extends Service{
         iTCPConnect.start();
 //        Thread thread = new UnConnectThread();
 //    	thread.start();
-        
+        Intent checkIntent = new Intent();
+		checkIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+		tts = new TextToSpeech(this, this);
+		startActivity(checkIntent);
 	}
 
 	public int onStartCommand(Intent intent,int flags, int startId){
 		Log.e(TAG, "============>HomeService.onStartCommand");
 		//iTCPConnect = new TcpConnect(this);
         //iTCPConnect.start();
+		
 		return super.onStartCommand(intent, flags, startId);
 	}
 	
 	public void onDestroy(){
+		tts.shutdown();
 		if (homePressReceiver != null) {
 			try {
 				unregisterReceiver(homePressReceiver);
@@ -149,5 +162,39 @@ public class HomeService extends Service{
 			}
 		}
 	}
-	
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == MY_DATA_CHECK_CODE) {
+			Log.e(TAG, "resultCode: " + resultCode);
+			if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+				// success, create the TTS instance
+				tts = new TextToSpeech(this, this);
+			} else {
+				// missing data, install it
+				Intent installIntent = new Intent();
+				installIntent
+						.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+				startActivity(installIntent);
+				toTtsSettings();
+			}
+		}
+	}
+	@Override
+	public void onInit(int status) {
+		// TODO Auto-generated method stub
+		if (status == TextToSpeech.SUCCESS) {
+			Log.e(TAG, "Text-To-Speech engine is initialized");
+//			tts.speak("请对本次服务进行评价！", TextToSpeech.QUEUE_ADD, null);
+		} else if (status == TextToSpeech.ERROR) {
+			Log.e(TAG, "Error occurred while initializing Text-To-Speech engine");
+		}
+	}
+	/** 跳转到“语音输入与输出”设置界面 */
+	private boolean toTtsSettings() {
+		try {
+			startActivity(new Intent("com.android.settings.TTS_SETTINGS"));
+			return true;
+		} catch (ActivityNotFoundException e) {
+			return false;
+		}
+	}
 }

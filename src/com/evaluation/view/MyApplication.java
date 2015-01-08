@@ -28,8 +28,6 @@ public class MyApplication extends Application {
 		Log.e(TAG, "myApplication.onCreate");
 		CrashHandler crashHandler = CrashHandler.getInstance();  
         crashHandler.init(this);
-//		iTCPConnect = new TcpConnect(this);
-//        iTCPConnect.start();
 	}
 	public int getValue() {
 		return value;
