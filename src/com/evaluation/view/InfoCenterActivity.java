@@ -40,7 +40,7 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
 	private List<Announcement> annoList;
 	private List<Announcement> curList;
 	private String account;
-	private ImageButton back;
+	private TextView back;
 	private TextView weekView;
 	private TextView dateView;
 	private TextView timeView;
@@ -70,7 +70,7 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
 		
-        back = (ImageButton) findViewById(R.id.back);
+        back = (TextView) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
 			
 			@Override

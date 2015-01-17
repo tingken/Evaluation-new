@@ -141,11 +141,11 @@ public class CrashHandler implements UncaughtExceptionHandler {
                             //下面是以附件形式发送邮件  
                             Intent intent = new Intent(Intent.ACTION_SEND);  
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);  
-                            String[] tos = { "way.ping.li@gmail.com" };  
+                            String[] tos = { "hanqianjie@gmail.com" };  
                             intent.putExtra(Intent.EXTRA_EMAIL, tos);  
   
                             intent.putExtra(Intent.EXTRA_SUBJECT,  
-                                    "推聊Android客户端 - 错误报告");  
+                                    "评价器Android客户端 - 错误报告");  
                             if (file != null) {  
                                 intent.putExtra(Intent.EXTRA_STREAM,  
                                         Uri.fromFile(file));  

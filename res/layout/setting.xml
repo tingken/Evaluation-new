@@ -63,6 +63,7 @@
 	        android:textColor="#000000"
 	        android:textSize="18px" />
 	    
+>>>>>>> Stashed changes
 	    <Button
 	        android:id="@+id/quit"
 	        android:layout_width="194px"

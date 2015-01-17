@@ -96,15 +96,10 @@ public class NetworkManager {
 			if (response.getStatusLine().getStatusCode() == 200) { //200表示请求成功    
 				return true;
 			}
-		} catch (URISyntaxException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+			//e.printStackTrace();
+			Log.e(TAG, e.getMessage());
 		}
 		return false;
 	}

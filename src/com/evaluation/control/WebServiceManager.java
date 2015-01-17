@@ -58,6 +58,8 @@ public class WebServiceManager {
         rpc.addProperty("DeviceKey", deviceKey);
      // 获取返回的结果  
       SoapObject object = getRemoteInfo();
+      if(object == null)
+    	  return null;
       String result = object.getProperty("AddUserComplaintsPadResult").toString();
       Log.e(TAG, result);
       return getComplaintResult(result);
@@ -68,6 +70,8 @@ public class WebServiceManager {
         rpc.addProperty("ComplaintsId", complaintsId);
      // 获取返回的结果  
       SoapObject object = getRemoteInfo();
+      if(object == null)
+    	  return null;
       String result = object.getProperty("GetComplaintsCheckNoticeResult").toString();
       Log.e(TAG, result);
       return getDealResult(result);
@@ -134,7 +138,7 @@ public class WebServiceManager {
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return null;
+			return cr;
 		}
     	return cr;
     }
@@ -153,8 +157,9 @@ public class WebServiceManager {
     }
 	public String getLocalMacAddress() {  
         WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);  
-        WifiInfo info = wifi.getConnectionInfo();  
-        return info.getMacAddress();  
+        WifiInfo info = wifi.getConnectionInfo();
+        String mac = info.getMacAddress();
+        return mac.replace(":", "");  
     }
 	public String getAndroidId() {
 		String androidId = Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID);

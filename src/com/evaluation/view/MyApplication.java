@@ -26,8 +26,8 @@ public class MyApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 		Log.e(TAG, "myApplication.onCreate");
-		CrashHandler crashHandler = CrashHandler.getInstance();  
-        crashHandler.init(this);
+//		CrashHandler crashHandler = CrashHandler.getInstance();  
+//        crashHandler.init(this);
 	}
 	public int getValue() {
 		return value;

@@ -48,6 +48,9 @@ public class HomeService extends Service implements OnInitListener {
 	public void setValue(int value) {
 		this.value = value;
 	}
+	public TextToSpeech getTts() {
+		return this.tts;
+	}
 	public void setWords(String words) {
 		Log.e(TAG, "HomeService.setWords: (" + words + ")");
 		tts.speak(words, TextToSpeech.QUEUE_ADD, null);

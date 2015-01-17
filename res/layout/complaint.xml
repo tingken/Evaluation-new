@@ -7,12 +7,15 @@
         android:layout_width="fill_parent"
         android:layout_height="73px"
         android:background="@drawable/tab" >
-        <ImageButton
+        <TextView
             android:id="@+id/back"
             android:layout_width="78dp"
-            android:layout_height="66dp"
-            android:src="@drawable/btn_back"
-            android:background="@drawable/back_selector"
+            android:layout_height="75dp"
+            android:text="返回"
+            android:textColor="#ffffff"
+            android:textSize="30px"
+            android:gravity="center"
+            android:background="@null"
             android:layout_toLeftOf="@+id/time" />
 
         <TextView
@@ -63,82 +66,15 @@
                 android:layout_height="26px"
                 android:textSize="22px"
                 android:textColor="#2f2f2f"
-                android:layout_marginTop="18px"
+                android:layout_marginTop="30px"
                 android:gravity="center"
                 android:text="投诉中心"/>
+            
+            
             <LinearLayout
 	            android:layout_width="match_parent"
-	            android:layout_height="34px"
-	            android:layout_marginTop="18px"
-	            android:orientation="horizontal">
-                <TextView 
-	                android:layout_width="wrap_content"
-	                android:layout_height="match_parent"
-	                android:textSize="18px"
-	                android:textColor="#2f2f2f"
-	                android:gravity="center"
-	                android:text="姓名"/>
-                <EditText
-                    android:id="@+id/name"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="可不填"
-                    android:layout_gravity="center"
-                    android:textSize="16px"
-                    android:paddingTop="1px"
-                    android:paddingBottom="1px"
-                    android:layout_marginLeft="10px"/>
-            </LinearLayout>
-            <LinearLayout
-	            android:layout_width="match_parent"
-	            android:layout_height="34px"
-	            android:layout_marginTop="18px"
-	            android:orientation="horizontal">
-                <TextView 
-	                android:layout_width="wrap_content"
-	                android:layout_height="match_parent"
-	                android:textSize="18px"
-	                android:textColor="#2f2f2f"
-	                android:gravity="center"
-	                android:text="电话"/>
-                <EditText
-                    android:id="@+id/tel"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-	                android:hint="可不填"
-	                android:layout_gravity="center"
-                    android:textSize="16px"
-                    android:paddingTop="1px"
-                    android:paddingBottom="1px"
-                    android:layout_marginLeft="10px"/>
-            </LinearLayout>
-            <LinearLayout
-	            android:layout_width="match_parent"
-	            android:layout_height="34px"
-	            android:layout_marginTop="18px"
-	            android:orientation="horizontal">
-                <TextView 
-	                android:layout_width="wrap_content"
-	                android:layout_height="match_parent"
-	                android:textSize="18px"
-	                android:textColor="#2f2f2f"
-	                android:gravity="center"
-	                android:text="邮箱"/>
-                <EditText
-                    android:id="@+id/email"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="可不填"
-                    android:textSize="16px"
-                    android:layout_gravity="center"
-                    android:paddingTop="1px"
-                    android:paddingBottom="1px"
-                    android:layout_marginLeft="10px"/>
-            </LinearLayout>
-            <LinearLayout
-	            android:layout_width="match_parent"
-	            android:layout_height="201px"
-	            android:layout_marginTop="18px"
+	            android:layout_height="250px"
+	            android:layout_marginTop="35px"
 	            android:layout_gravity="top"
 	            android:orientation="horizontal">
                 <TextView 
@@ -160,7 +96,7 @@
             <LinearLayout
 	            android:layout_width="match_parent"
 	            android:layout_height="35px"
-	            android:layout_marginTop="10px"
+	            android:layout_marginTop="20px"
 	            android:layout_gravity="top"
 	            android:orientation="horizontal">
 	            <Button

@@ -22,8 +22,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AccountManager {
-	//private static String url = "http://125.71.200.138:8081/";//外网IP
-	private static String url = "http://10.0.205.11:8081/";//内网IP
+	private static String url = "http://125.71.200.138:8081/";//外网IP
+	//private static String url = "http://10.0.205.11:8081/";//内网IP
 	private User user;
 	private DatabaseManager dba;
 	private Context context;
@@ -185,6 +185,7 @@ public class AccountManager {
 		return statu;
 	}
 	public String getData(String key, String url){
+		Log.e(TAG, url);
 		String out = "";
 		JSONObject jsonObject = null;
 		String data = "";
@@ -227,25 +228,13 @@ public class AccountManager {
 			if(!isConnect()){
 				return;
 			}
-			String out = "";
-			JSONObject jsonObject = null;
-			String loginId = "";
-			try {
-				out = nm.executeGet(url + "GscSupport.svc/Login?username=" + eva.getAccount() + "&password=" + eva.getPassword());
-				Log.e(TAG, out);
-				jsonObject = new JSONObject(out);
-				loginId = jsonObject.getString("Id");
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				//Log.e(TAG, e1.getMessage());
-				nm.close();
-				return;
-			}
+			String loginId = eva.getLoginId();
 			if(postData(loginId, eva.getValue())) {
 				dba.deleteEvaluationById(eva.getId());
 				Log.e(TAG, "上传保存的评价成功");
 			}
+			else
+				Log.e(TAG, "上传保存的评价失败");
 		}
 		dba.close();
 	}

@@ -37,11 +37,11 @@ public class DatabaseManager {
 	private static final String ANNOUNCE_TABLE = "ANNOUNCEMENT";
 	private static final String ACCEPTBUIZ_TABLE = "ACCEPTBUIZ";
 	private static final String EVALUATION_TABLE = "EVALUATION";
-	private static final int DB_VERSION = 5;
+	private static final int DB_VERSION = 3;
 	private static Context mContext = null;
 	private String[] userColumn = new String[] {"ACCOUNT", "PASSWORD", "LOGIN_ID", "NAME", "ORG", "WORKNO", "PHOTO_NAME", "PHOTO_URL", "OPERATION", "TIME"};
 	private String[] annoColumn = {"ID", "USER_ACCOUNT", "IMAGE_NAME", "IMAGE_URL", "TITLE", "CONTENT", "ISSUE_DATE", "OUTOF_DATE"};
-	private String[] evaluationColumn = {"ID", "EVALUATION", "USER_ACCOUNT", "PASSWORD", "LOGIN_ID"};
+	private String[] evaluationColumn = {"ID", "EVALUATION", "USER_ACCOUNT", "PASSWORD"};
 	private static final String CREATE_USER_TB = "CREATE TABLE "
 												+ USER_TABLE
 												+ "(ID INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -75,7 +75,6 @@ public class DatabaseManager {
 												+ " INTEGER PRIMARY KEY AUTOINCREMENT,"
 												+ "EVALUATION TEXT,"
 												+ "USER_ACCOUNT TEXT,"
-												+ "LOGIN_ID TEXT,"
 												+ "PASSWORD TEXT)";
 	//
 	private static DatabaseManager instance;
@@ -194,7 +193,6 @@ public class DatabaseManager {
 		initialValues.put("USER_ACCOUNT", eval.getAccount());
 		initialValues.put("EVALUATION", eval.getValue());
 		initialValues.put("PASSWORD", eval.getPassword());
-		initialValues.put("LOGIN_ID", eval.getLoginId());
 		return mSQLiteDatabase.insert(EVALUATION_TABLE, KEY_ID, initialValues);
 	}
 	public List<Evaluation> findAllEvaluation() {
@@ -220,7 +218,6 @@ public class DatabaseManager {
 			eva.setAccount(map.get("USER_ACCOUNT"));
 			eva.setValue(map.get("EVALUATION"));
 			eva.setPassword(map.get("PASSWORD"));
-			eva.setLoginId(map.get("LOGIN_ID"));
 			evaList.add(eva);
 			mCursor.moveToNext();
 		}
@@ -434,6 +431,7 @@ public class DatabaseManager {
 			user.setPhotoUrl(map.get("PHOTO_URL"));
 			user.setWorkNum(map.get("WORKNO"));
 			user.setOperation(map.get("OPERATION"));
+			user.setLoginDate(map.get("TIME"));
 			userList.add(user);
 		}
 		return userList;

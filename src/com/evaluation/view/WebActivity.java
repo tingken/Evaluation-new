@@ -39,7 +39,7 @@ public class WebActivity extends Activity {
 	//private View main;
 	private WebView webView;
 	private RelativeLayout webLayout;
-	private ImageButton back;
+	private TextView back;
 	private TextView weekView;
 	private TextView dateView;
 	private TextView timeView;
@@ -72,6 +72,7 @@ public class WebActivity extends Activity {
 //		webLayout.addView(webView);
 		sp = this.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
 		tag = this.getIntent().getIntExtra("tag", 0);
+
 		//loginId = this.getIntent().getStringExtra("loginId");
 		loginId = sp.getString("loginId", "");
 //		String url = this.getIntent().getStringExtra("url");
@@ -94,7 +95,7 @@ public class WebActivity extends Activity {
 //		if(title != null)
 //			titleView.setText(title);
 		
-        back = (ImageButton) findViewById(R.id.back);
+        back = (TextView) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
 			
 			@Override

@@ -43,7 +43,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class ComplaintActivity extends Activity {
-	private ImageButton back;
+	private TextView back;
 	private TextView weekView;
 	private TextView dateView;
 	private TextView timeView;
@@ -51,9 +51,9 @@ public class ComplaintActivity extends Activity {
 	private String dateValue;
 	private String weekValue;
 	private String timeValue;
-	private EditText nameEditor;
-	private EditText telEditor;
-	private EditText emailEditor;
+//	private EditText nameEditor;
+//	private EditText telEditor;
+//	private EditText emailEditor;
 	private EditText content;
     private Button submit;
     private Button cancel;
@@ -76,16 +76,16 @@ public class ComplaintActivity extends Activity {
         dateView = (TextView) findViewById(R.id.date);
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
-		nameEditor = (EditText) findViewById(R.id.name);
-		telEditor = (EditText) findViewById(R.id.tel);
-		emailEditor = (EditText) findViewById(R.id.email);
+//		nameEditor = (EditText) findViewById(R.id.name);
+//		telEditor = (EditText) findViewById(R.id.tel);
+//		emailEditor = (EditText) findViewById(R.id.email);
 		content = (EditText)findViewById(R.id.content);
         submit = (Button) findViewById(R.id.submit);
         submit.setOnClickListener(submitClickListener);
         cancel = (Button) findViewById(R.id.cancel);
         cancel.setOnClickListener(cancelClickListener);
 		
-        back = (ImageButton) findViewById(R.id.back);
+        back = (TextView) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -196,12 +196,12 @@ private View.OnClickListener submitClickListener = new View.OnClickListener() {
         
         @Override
         public void onClick(View v) {
-        	String name = nameEditor.getText().toString();
-        	String tel = telEditor.getText().toString();
-        	String email = emailEditor.getText().toString();
+//        	String name = nameEditor.getText().toString();
+//        	String tel = telEditor.getText().toString();
+//        	String email = emailEditor.getText().toString();
         	String contentText = content.getText().toString();
         	if(!contentText.equals("")) {
-        		sendComplaint(name, tel, email, contentText);
+        		sendComplaint("", "", "", contentText);
         	}else
         		return;
         	ComplaintActivity.this.finish();
@@ -295,18 +295,19 @@ private View.OnClickListener submitClickListener = new View.OnClickListener() {
 			//String dateFormat = "yyyy-MM-dd HH:mm";
 			boolean threadOver = false;
 			for(int i = 0; i < maxTime && !threadOver; i++) {
-				try {
-					Thread.sleep(60 * 1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
 				dealResult = wsm.getComplaintsCheckNotice(key);
 				if(dealResult.getStatus().equals("1")){
 					Intent intent = new Intent("COMPLAINT_RESULT");
 					intent.putExtra("description", dealResult.getDescription());
 					ComplaintActivity.this.sendBroadcast(intent);
 					threadOver = true;
+				}
+				try {
+					Thread.sleep(60 * 1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}

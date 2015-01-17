@@ -7,12 +7,14 @@
         android:layout_width="fill_parent"
         android:layout_height="73px"
         android:background="@drawable/tab" >
-        <ImageButton
+        <TextView
             android:id="@+id/back"
             android:layout_width="78dp"
             android:layout_height="66dp"
-            android:src="@drawable/btn_back"
-            android:background="@drawable/back_selector"
+            android:textColor="#ffffff"
+			android:text="返回"
+			android:textSize="28px"
+			android:gravity="center"
             android:layout_toLeftOf="@+id/time" />
 
         <TextView

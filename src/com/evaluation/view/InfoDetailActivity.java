@@ -33,7 +33,7 @@ public class InfoDetailActivity extends Activity implements OnGestureListener {
 	private DatabaseManager dba;
 	private List<Announcement> annoList;
 	private String account;
-	private ImageButton back;
+	private TextView back;
 	private TextView weekView;
 	private TextView dateView;
 	private TextView timeView;
@@ -67,7 +67,7 @@ public class InfoDetailActivity extends Activity implements OnGestureListener {
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
 		
-        back = (ImageButton) findViewById(R.id.back);
+        back = (TextView) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
 			
 			@Override

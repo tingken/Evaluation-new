@@ -50,7 +50,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	private TextView thanks;
 	private String account = "";
 	private String loginId = "";
-//	private TextToSpeech tts;
+	private TextToSpeech tts;
 	private String TAG = "effort";
 	private int MY_DATA_CHECK_CODE = 0;
 	private boolean _isBound;
@@ -112,10 +112,10 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	public void onStart() {
 //		Intent checkIntent = new Intent();
 //		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-////		tts = new TextToSpeech(this, this);
 //		startActivityForResult(checkIntent, MY_DATA_CHECK_CODE);
 		
 		activityOver = false;
+		//tts = _boundService.getTts();
 		Thread dateThread = new DateThread();
 		dateThread.start();
 		
@@ -186,37 +186,44 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 //	}
 	private void saveData(int data){
 		if(loginId != null && !loginId.trim().equals("")) {
-			Evaluation eval = new Evaluation();
-			eval.setAccount(account);
-			eval.setValue(String.valueOf(data));
-			DatabaseManager.initializeInstance(EvaluationActivity.this);
-			DatabaseManager dba = DatabaseManager.getInstance();
-			dba.open();
-			User user = dba.findUserByAccount(account);
-			eval.setPassword(user.getPassword());
-			dba.insertEvaluation(eval);
-			dba.close();
-			Log.e(TAG, "评价信息已保存到数据库。");
-			
-			Thread dataThread = new SaveDataThread(data);
+			Thread dataThread = new SaveDataThread(loginId, data);
 			dataThread.start();
 		}
-		
 	}
 	private class SaveDataThread extends Thread{
-		private int data;
-		public SaveDataThread(int data){
-			this.data = data;
+		private int m_data;
+		private String m_loginId;
+		public SaveDataThread(String m_loginId, int data){
+			this.m_data = data;
+			this.m_loginId = m_loginId;
 		}
 		public void run() {
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			Log.e(TAG, "评价上传");
+			AccountManager am = new AccountManager(EvaluationActivity.this);
+			handler.sendEmptyMessage(m_data);
+			if(am.postData(m_loginId, String.valueOf(m_data)))
+				Log.e(TAG, "评价上传成功!");
+			else {
+				Evaluation eval = new Evaluation();
+				//eval.setAccount(account);
+				eval.setValue(String.valueOf(m_data));
+				DatabaseManager.initializeInstance(EvaluationActivity.this);
+				DatabaseManager dba = DatabaseManager.getInstance();
+				dba.open();
+				//User user = dba.findUserByAccount(account);
+				//eval.setPassword(user.getPassword());
+				eval.setLoginId(m_loginId);
+				dba.insertEvaluation(eval);
+				dba.close();
+				Log.e(TAG, "评价信息上传失败，已保存到数据库。");
+//				try {
+//					Thread.sleep(5000);
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				EvaluationActivity.this.finish();
 			}
-			handler.sendEmptyMessage(data);
-
 		}
 	}
 	
@@ -224,7 +231,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 		public void handleMessage(android.os.Message msg) {
 			((MyApplication)getApplication()).setValue(msg.what);
 			((MyApplication)getApplication()).setStatu(true);
-			finish();
+			activityOver = true;
 		};
 	};
 	
@@ -233,6 +240,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	 */
 	private class DateThread extends Thread {
 		public void run() {
+			
 			while(!activityOver) {
 				try {
 					Thread.sleep(200);
@@ -263,6 +271,23 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 		        }
 				dateHandler.sendEmptyMessage(1);
 			}
+			try {
+				Thread.sleep(6000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(tts == null)
+				tts = _boundService.getTts();
+			while(tts != null && tts.isSpeaking()){
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			EvaluationActivity.this.finish();
 		}
 	}
 	// 设置标题上的时间
@@ -277,7 +302,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	protected void onStop() {
 		// 当Activity不可见的时候停止切换
 		Log.e(TAG, "onStop");
-		activityOver = true;
+		//activityOver = true;
 		super.onStop();
 	}
 	@Override

@@ -15,12 +15,32 @@
             android:layout_width="79px"
             android:layout_height="72px"
             android:background="@null" />
-		<ImageButton
+		
+        <TextView
+		    android:layout_width="5px"
+		    android:layout_height="69px"
+		    android:layout_marginTop="12px"
+		    android:background="@drawable/white_line"
+		    android:layout_toLeftOf="@+id/complaint"/>
+		<com.romainpiel.shimmer.ShimmerTextView
             android:id="@+id/complaint"
-            android:layout_width="78px"
+            android:layout_width="140px"
             android:layout_height="66px"
-            android:background="@drawable/btn_complaint_selector"
-            android:layout_toLeftOf="@+id/setting" />
+            android:gravity="center"
+            android:text="我要投诉"
+            android:textSize="28px"
+            android:textColor="#000000"
+            android:background="@null"
+            android:layout_toLeftOf="@+id/white_line" />
+		<TextView
+		    android:id="@id/white_line"
+		    android:layout_width="5px"
+		    android:layout_height="69px"
+		    android:layout_marginTop="12px"
+		    android:background="@drawable/white_line"
+		    android:layout_toLeftOf="@+id/setting"/>
+		    
+>>>>>>> Stashed changes
         <ImageButton
             android:id="@+id/setting"
             android:layout_width="78px"
@@ -101,6 +121,7 @@
 			    	        android:layout_height="35px"
 			    	        android:gravity="center"
 							android:layout_marginTop="166px">
+
 							<TextView
 							    android:id="@+id/leave_message"
 							    android:textColor="#ffffff"

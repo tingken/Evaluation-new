@@ -20,10 +20,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;  
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;  
@@ -62,6 +64,7 @@ public class LoginActivity extends Activity {
 	private String TAG = "effort";
 	private boolean isLogining = false;
 	private DatabaseManager dba;
+	private Thread autoLoginThread;
 
 	private String DISCONNECT = "DISCONNECT";
 	private String WRONGPW = "WRONGPW";
@@ -264,7 +267,7 @@ public class LoginActivity extends Activity {
 				logining.dismiss();
 				autoLogin = 0;
 				isLogining = false;
-				Thread autoLoginThread = new AutoLoginThread();
+				autoLoginThread = new AutoLoginThread();
 				autoLoginThread.start();
 			}
 		}
@@ -360,6 +363,13 @@ public class LoginActivity extends Activity {
 
             if (isShouldHideInput(v, ev)) {
                 hideSoftInput(v.getWindowToken());
+                isLogining = false;
+                if(autoLoginThread == null || !autoLoginThread.isAlive()){
+                	autoLoginThread = new AutoLoginThread();
+					autoLoginThread.start();
+                }
+            }else{
+            	isLogining = true;
             }
         }
         return super.dispatchTouchEvent(ev);
@@ -402,4 +412,13 @@ public class LoginActivity extends Activity {
                     InputMethodManager.HIDE_NOT_ALWAYS);
         }
     }
+
+//	@Override
+//	public void onFocusChange(View view, boolean focused) {
+//		// TODO Auto-generated method stub
+//		if(focused)
+//			isLogining = true;
+//		else
+//			isLogining = false;
+//	}
 }

@@ -15,6 +15,8 @@ import com.evaluation.control.AnnouncementManager;
 import com.evaluation.control.WebServiceManager;
 import com.evaluation.dao.DatabaseManager;
 import com.evaluation.model.Announcement;
+import com.evaluation.model.ComplaintResult;
+import com.evaluation.model.DealResult;
 import com.evaluation.model.LeaveMessage;
 import com.evaluation.model.User;
 import com.evaluation.service.HomeService;
@@ -26,6 +28,8 @@ import com.evaluation.util.MarqueeView;
 import com.evaluation.util.PagerAdapter;
 import com.evaluation.util.VerticalViewPager;
 import com.evaluation.util.VerticalViewPager.OnPageChangeListener;
+import com.romainpiel.shimmer.Shimmer;
+import com.romainpiel.shimmer.ShimmerTextView;
 
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -36,9 +40,11 @@ import android.os.Message;
 import android.os.Parcelable;
 import android.os.PowerManager;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -82,6 +88,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private VerticalViewPager viewPager; // android-support-v4中的滑动组件
 	private List<ImageView> imageViews; // 滑动的图片集合
 	AnnouncementManager am;
+	private WebServiceManager wsm;
+	private ComplaintResult complaintResult;
+	private DealResult dealResult;
 
 	private String[] titles; // 图片标题
 	private String[] dates; // 公告发布日期
@@ -92,7 +101,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private ImageButton setting;
 	private ImageButton evaluation;
 	private Button quit;
-	private ImageButton complaint;
+	private ShimmerTextView complaint;
+	private Shimmer shimmer;
 	private TextView weekView;
 	private TextView dateView;
 	private TextView timeView;
@@ -157,6 +167,30 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	};
 	
 	// 获取工作人员请假信息
+//		private Handler leaveMessageHandler = new Handler() {
+//			public void handleMessage(android.os.Message msg) {
+//		        if(msg.what == 1) {
+//		        	leaveMessageView.setText("请假中");
+//		        	leaveMessageView.setBackgroundColor(Color.GRAY);
+//		        	if(scheduledExecutorService != null) {
+//		    			scheduledExecutorService.shutdown();
+//		    			scheduledExecutorService = null;
+//		    			//activityOver = false;
+//		    			annosOk = false;
+//		    		}
+//		        	tv_content.setText(leaveMessage.getDescription());
+//		        }else {
+//		        	leaveMessageView.setText("正在服务");
+//		        	leaveMessageView.setBackgroundColor(Color.GREEN);
+//		        	if(scheduledExecutorService == null) {
+//		    			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+//		    			// 当Activity显示出来后，每两秒钟切换一次图片显示
+//		    			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
+//			        	annosOk = true;
+//		    		}
+//		        }
+//			};
+//		};
 		private Handler leaveMessageHandler = new Handler() {
 			public void handleMessage(android.os.Message msg) {
 		        if(msg.what == 1) {
@@ -221,7 +255,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		weekView = (TextView) findViewById(R.id.week);
 		timeView = (TextView) findViewById(R.id.time);
 		setting = (ImageButton) findViewById(R.id.setting);
-		complaint = (ImageButton) findViewById(R.id.complaint);
+//		complaint = (ImageButton) findViewById(R.id.complaint);
+		complaint = (ShimmerTextView) findViewById(R.id.complaint);
+//		shimmer = new Shimmer();
+//		shimmer.start(complaint);
 		
 		photoView = (ImageView) findViewById(R.id.photo);
 		userNameView = (MarqueeView) findViewById(R.id.user_name);
@@ -299,17 +336,50 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		leaveDialog.setCanceledOnTouchOutside(false);
 		complaintDialog = new ComplaintDialog(this, R.layout.complaint_dialog, R.style.Theme_dialog);
 		complaintDialog.setCanceledOnTouchOutside(false);
+//		complaint.setOnClickListener(new OnClickListener(){
+//
+//			@Override
+//			public void onClick(View arg0) {
+//				// TODO Auto-generated method stub
+//				Intent intent = new Intent(MainActivity.this,ComplaintActivity.class);
+//				MainActivity.this.startActivity(intent);
+//			}
+//			
+//		});
+		startService();
 		complaint.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
-				Intent intent = new Intent(MainActivity.this,ComplaintActivity.class);
-				MainActivity.this.startActivity(intent);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);           
+				//builder.setIcon(R.drawable.icon);  
+				//builder.setTitle("投票");  
+				builder.setMessage("投诉后受理投诉工作人员将在5分钟内到达现场 是否等待?");  
+				builder.setPositiveButton("是", new DialogInterface.OnClickListener() {  
+				    public void onClick(DialogInterface dialog, int whichButton) {  
+				        //
+				    	sendComplaint("","","","群众发起了一个投诉。");
+				    }  
+				});  
+				builder.setNeutralButton("否", new DialogInterface.OnClickListener() {  
+				    public void onClick(DialogInterface dialog, int whichButton) {  
+				        //                     
+				    }  
+				});  
+				builder.setNegativeButton("我要匿名投诉", new DialogInterface.OnClickListener() {  
+				    public void onClick(DialogInterface dialog, int whichButton) {  
+				        //   
+						Intent intent = new Intent(MainActivity.this,ComplaintActivity.class);
+						MainActivity.this.startActivity(intent);
+				    	startService();
+				    }  
+				});  
+				builder.create().show();
 			}
 			
 		});
-		startService();
 	}
 	
 	private class MyDotClickListener implements View.OnClickListener{
@@ -797,7 +867,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	        	String showContent = intent.getStringExtra("description");
 	        	if(showContent != null && !showContent.equals(""))
 	        		leaveDialog.show(showContent, 36, Color.BLACK, 60);
-	        	leaveDialog.show("您的投诉发送失败，请重新填写！", 36, Color.BLACK, 60);
+	        	else
+	        		leaveDialog.show("您的投诉未能成功提交，请使用其它投诉方式进行投诉!", 36, Color.BLACK, 60);
 	        }else if(intent.getAction().equals("COMPLAINT_RESULT")) {
 	        	String description = intent.getStringExtra("description");
 	        	leaveDialog.show(description, 22, Color.BLACK, 60);
@@ -950,13 +1021,40 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		}
 		return time.before(new Date());
 	}
+//	private class LeaveMessageThread extends Thread {
+//		public void run() {
+//			while(!activityOver) {
+//				WebServiceManager wsm = new WebServiceManager(MainActivity.this);
+//				leaveMessage = wsm.getDeviceUserStatus();
+//				if(leaveMessage == null)
+//					return;
+//				String dateFormat = "";
+//				if(beforeNow(leaveMessage.getStartDate(), dateFormat) && afterNow(leaveMessage.getEndDate(), dateFormat)) {
+//					//请假中
+//					leaveMessageHandler.sendEmptyMessage(1);
+//				}else{
+//					//正常工作中
+//					leaveMessageHandler.sendEmptyMessage(2);
+//				}
+//				try {
+//					Thread.sleep(20 * 60 * 1000);
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//					continue;
+//				}
+//			}
+//		}
+//	}
 	private class LeaveMessageThread extends Thread {
 		public void run() {
 			while(!activityOver) {
 				WebServiceManager wsm = new WebServiceManager(MainActivity.this);
 				leaveMessage = wsm.getDeviceUserStatus();
-				if(leaveMessage == null)
-					return;
+				if(leaveMessage == null){
+					leaveMessageHandler.sendEmptyMessage(2);
+					continue;
+				}
 				String dateFormat = "yyyy-MM-dd HH:mm";
 				if(beforeNow(leaveMessage.getStartDate(), dateFormat) && afterNow(leaveMessage.getEndDate(), dateFormat)) {
 					//请假中
@@ -978,6 +1076,79 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	public String getLocalMacAddress() {  
         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);  
         WifiInfo info = wifi.getConnectionInfo();  
-        return info.getMacAddress();  
+        String mac = info.getMacAddress();
+        return mac.replace(":", "");   
     }
+	public void sendComplaint(String name, String tel, String email, String content){
+    	Thread sendComplaintThread = new SendComplaintThread(name, tel, email, content);
+    	sendComplaintThread.start();
+    }
+	private class SendComplaintThread extends Thread{
+		private String name;
+		private String tel;
+		private String email;
+		private String content;
+		public SendComplaintThread(String name, String tel, String email, String content) {
+			this.name = name;
+			this.tel = tel;
+			this.email = email;
+			this.content = content;
+		}
+		public void run() {
+			wsm = new WebServiceManager(MainActivity.this);
+			complaintResult = wsm.addUserComplaintsPad(name, tel, email, content);
+        	dealComplaintResult();
+		}
+	}
+	private void dealComplaintResult() {
+		if(complaintResult == null || complaintResult.getStatus() == null){
+			Intent intent = new Intent("COMPLAINT_FAIL");
+			if(complaintResult != null && !complaintResult.getDescription().equals(""))
+				intent.putExtra("description", complaintResult.getDescription());
+			MainActivity.this.sendBroadcast(intent);
+			return;
+		}
+		else if(complaintResult.getStatus().equals("1")) {
+        	Intent intent = new Intent("COMPLAINT_SUCCESS");
+        	intent.putExtra("description", complaintResult.getDescription());
+        	MainActivity.this.sendBroadcast(intent);
+			getResponse(complaintResult.getKey());
+		}else{
+			Intent intent = new Intent("COMPLAINT_FAIL");
+			intent.putExtra("description", complaintResult.getDescription());
+			MainActivity.this.sendBroadcast(intent);
+		}
+	}
+	private void getResponse(String key) {
+		Thread getResponseThread = new GetResponseThread(key);
+		getResponseThread.start();
+	}
+	private class GetResponseThread extends Thread{
+		private String key;
+		public GetResponseThread(String key) {
+			this.key = key;
+		}
+		public void run() {
+			int maxTime = Integer.parseInt(complaintResult.getMaxTime());
+			String key = complaintResult.getKey();
+			//String dateFormat = "yyyy-MM-dd HH:mm";
+			boolean threadOver = false;
+			for(int i = 0; i < maxTime && !threadOver; i++) {
+				
+				dealResult = wsm.getComplaintsCheckNotice(key);
+				if(dealResult.getStatus().equals("1")){
+					Intent intent = new Intent("COMPLAINT_RESULT");
+					intent.putExtra("description", dealResult.getDescription());
+					MainActivity.this.sendBroadcast(intent);
+					threadOver = true;
+				}
+				try {
+					Thread.sleep(60 * 1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }
