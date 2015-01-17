@@ -11,14 +11,14 @@
         android:background="@drawable/tab" >
 
         
-
+<!-- 
         <ImageButton
             android:id="@+id/setting"
             android:layout_width="78dp"
             android:layout_height="66dp"
             android:background="@drawable/btn_setting_selector"
             android:layout_toLeftOf="@+id/time" />
-
+ -->
         <TextView
             android:layout_width="102dp"
             android:layout_height="fill_parent"

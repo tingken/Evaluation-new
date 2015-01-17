@@ -117,6 +117,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private TextView tv_date;
 	private TextView tv_content;
 	private TextView acceptBiz;
+	private Thread annoThread = null;
 	private int currentItem = 0; // 当前图片的索引号
 	private Handler announHandler = new AnnounHandler();
 	private DatabaseManager dba;
@@ -145,6 +146,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	// An ExecutorService that can schedule commands to run after a given delay,
 	// or to execute periodically.
 	private ScheduledExecutorService scheduledExecutorService = null;
+	private ScheduledExecutorService uiUpdateScheduleExecutorService = null;
 
 	// 切换当前显示的图片
 	private Handler handler = new Handler() {
@@ -329,7 +331,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		registerReceiver(mBroadcastReceiver, new IntentFilter("COMPLAINT_FAIL"));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("COMPLAINT_RESULT"));
 		annoList = new ArrayList<Announcement>();
-		Thread annoThread = new AnnounThread();
+		annoThread = new AnnounThread();
 		annoThread.start();
 		
 		leaveDialog = new LeaveDialog(this, R.layout.layout_dialog, R.style.Theme_dialog);
@@ -402,6 +404,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			// 当Activity显示出来后，每两秒钟切换一次图片显示
 			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 		}
+//		if(uiUpdateScheduleExecutorService == null && activityOver) {
+//			uiUpdateScheduleExecutorService = Executors.newSingleThreadScheduledExecutor();
+//			// 每隔一段时间更新UI
+//			uiUpdateScheduleExecutorService.scheduleAtFixedRate(new UIUpdateTask(), 1, 1, TimeUnit.MINUTES);
+//		}
 		activityOver = false;
 		Thread dateThread = new DateThread();
 		dateThread.start();
@@ -423,6 +430,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			scheduledExecutorService.shutdown();
 			scheduledExecutorService = null;
 		}
+		
+		if(uiUpdateScheduleExecutorService != null) {
+			uiUpdateScheduleExecutorService.shutdown();
+			uiUpdateScheduleExecutorService = null;
+		}
 		leaveDialog.dismiss();
 		complaintDialog.dismiss();
 		activityOver = true;
@@ -434,6 +446,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	@Override
 	public void onDestroy() {
 		Log.e(TAG, "onDestory");
+		if(uiUpdateScheduleExecutorService != null) {
+			scheduledExecutorService.shutdown();
+			scheduledExecutorService = null;
+		}
 		if(bitmap != null){
 			bitmap.recycle();
 			bitmap = null;
@@ -515,6 +531,28 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 				handler.obtainMessage().sendToTarget(); // 通过Handler切换图片
 			}
 		}
+	}
+	
+	private class UIUpdateTask implements Runnable {
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			Log.d(TAG, "更新UI线程启动");
+			AccountManager acm = new AccountManager(MainActivity.this);
+			DatabaseManager.initializeInstance(MainActivity.this);
+			dba = DatabaseManager.getInstance();
+			dba.open();
+			user = dba.findUserByAccount(account);
+			acm.addUserInfo(loginId);
+			acm.getRemoteFile(user);
+			if(annoThread == null)
+				annoThread = new AnnounThread();
+			annoThread.start();
+			if(dba != null)
+				dba.close();
+		}
+		
 	}
 
 	/**
@@ -741,6 +779,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 				// 当Activity显示出来后，每两秒钟切换一次图片显示
 				scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 			}
+			
 			annosOk = true;
 			//设置按钮功能实现
 			LayoutInflater inflater = LayoutInflater.from(MainActivity.this);  

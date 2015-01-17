@@ -84,6 +84,7 @@ public class TcpConnect extends Thread {
 	        while(iRunFlag){  
 	        try{                       
 				mClient = mServerSocket.accept();
+				mClient.setSoTimeout(4000);
 	            Log.e("effort","TcpConnect" + "检测到有连接");
 //	            if(socketThread != null) {
 //	            	socketThread.close();
@@ -95,6 +96,7 @@ public class TcpConnect extends Thread {
 	        catch(Exception e)
 	        {   
 	        	iRunFlag = false;
+	        	Log.e(TAG, e.getMessage());
 	        	Log.e("effort", "TCP error"); 
 	        }   
 	    }

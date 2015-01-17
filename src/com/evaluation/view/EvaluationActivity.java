@@ -39,7 +39,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	private String weekValue;
 	private String timeValue;
 	private boolean activityOver = false;
-	private ImageButton setting;
+	//private ImageButton setting;
 	private ImageButton button0;
 	private ImageButton button1;
 	private ImageButton button2;
@@ -67,16 +67,16 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 		((MyApplication)this.getApplication()).addActivity(this);
 		account = ((MyApplication)this.getApplication()).getAccount();
 		loginId = ((MyApplication)this.getApplication()).getLoginId();
-		setting = (ImageButton) findViewById(R.id.setting);
-		setting.setOnClickListener(new OnClickListener(){
-
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				toTtsSettings();
-			}
-			
-		});
+//		setting = (ImageButton) findViewById(R.id.setting);
+//		setting.setOnClickListener(new OnClickListener(){
+//
+//			@Override
+//			public void onClick(View v) {
+//				// TODO Auto-generated method stub
+//				toTtsSettings();
+//			}
+//			
+//		});
 		button0 = (ImageButton) findViewById(R.id.button0);
 		button0.setTag(0);
 		button0.setOnClickListener(this);
@@ -277,11 +277,11 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if(tts == null)
+			if(tts == null && _boundService != null)
 				tts = _boundService.getTts();
 			while(tts != null && tts.isSpeaking()){
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 import com.evaluation.protocol.DataHelper;
 import com.evaluation.protocol.DataType;
@@ -72,6 +73,7 @@ public class SocketThread extends Thread {
 					b[1] = DataType.RESPONSE.Flag();
 					b[2] = DataType.HEART_BEAT.Flag();
 					b[3] = DataHelper.END_BYTE;
+					//Log.e(TAG, "收到心跳");
 					Intent intent = new Intent("HEART_BEAT");
 					context.sendBroadcast(intent);
 					break;
@@ -90,7 +92,7 @@ public class SocketThread extends Thread {
 					emptyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					context.startActivity(emptyIntent);
 					context.setStatu(false);
-					Log.e(TAG, "APPLY_EVALUATE");
+					Log.e(TAG, "收到评价");
 					break;
 				case LEAVE_INFO:
 					b[0] = DataHelper.BEGIN_BYTE;
@@ -152,11 +154,14 @@ public class SocketThread extends Thread {
 				}
 				out.write(b);
 				out.flush();
-			} catch (Exception e) {
+			} catch (SocketTimeoutException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				keepAlive = false;
 				Log.e(TAG, "Exception: SocketThread " + e.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		try {

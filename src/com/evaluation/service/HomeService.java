@@ -72,8 +72,7 @@ public class HomeService extends Service implements OnInitListener {
         IntentFilter homeFilter = new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
     	registerReceiver(homePressReceiver, homeFilter);
     	registerReceiver(homePressReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-    	iTCPConnect = new TcpConnect((MyApplication)this.getApplication());
-        iTCPConnect.start();
+    	
 //        Thread thread = new UnConnectThread();
 //    	thread.start();
         Intent checkIntent = new Intent();
@@ -190,6 +189,8 @@ public class HomeService extends Service implements OnInitListener {
 		} else if (status == TextToSpeech.ERROR) {
 			Log.e(TAG, "Error occurred while initializing Text-To-Speech engine");
 		}
+		iTCPConnect = new TcpConnect((MyApplication)this.getApplication());
+        iTCPConnect.start();
 	}
 	/** 跳转到“语音输入与输出”设置界面 */
 	private boolean toTtsSettings() {

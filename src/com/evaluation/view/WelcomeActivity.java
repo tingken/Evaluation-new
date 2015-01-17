@@ -5,15 +5,19 @@ import java.util.List;
 import com.evaluation.control.AccountManager;
 import com.evaluation.dao.DatabaseManager;
 import com.evaluation.model.User;
+import com.evaluation.service.HomeService;
 import com.evaluation.util.ApkInstaller;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
@@ -39,6 +43,8 @@ public class WelcomeActivity extends Activity implements AnimationListener {
 	private String assetsApk = "SpeechService.apk";
 	private DatabaseManager dba;
 	private boolean activityOver = false;
+	private boolean _isBound;
+	private HomeService _boundService;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +74,7 @@ public class WelcomeActivity extends Activity implements AnimationListener {
         init();
         Thread welcomeThread = new WelcomeThread();
         welcomeThread.start();
+        //startService();
 	}
 	
 	@Override
@@ -262,5 +269,38 @@ public class WelcomeActivity extends Activity implements AnimationListener {
 			return false;
 		}
 		return true;
+	}
+	private ServiceConnection _connection = new ServiceConnection(){
+		public void onServiceConnected(ComponentName className, IBinder Service){
+			_boundService = ((HomeService.LocalBinder)Service).getService();
+			//Toast.makeText(MainActivity.this, "Service connected", Toast.LENGTH_SHORT).show();
+		}
+		public void onServiceDisconnected(ComponentName className){
+			//
+			_boundService = null;
+			//Toast.makeText(MainActivity.this, "Service disconnected", Toast.LENGTH_SHORT).show();
+		}
+	};
+	
+	private void startService(){
+		Intent i = new Intent(this, HomeService.class);
+		this.startService(i);
+	}
+	private void stopService(){
+		Intent i = new Intent(this, HomeService.class);
+		this.stopService(i);
+	}
+	private void bindService(){
+		Log.e(TAG, "================>Main.bindService");
+		Intent i = new Intent(this, HomeService.class);
+		this.bindService(i, _connection, Context.BIND_AUTO_CREATE);
+		_isBound = true;
+	}
+	private void unbindService(){
+		Log.e(TAG, "================>Main.unbindService");
+		if(_isBound){
+			unbindService(_connection);
+			_isBound = false;
+		}
 	}
 }

@@ -24,7 +24,7 @@ import android.util.Log;
 public class AccountManager {
 	private static String url = "http://125.71.200.138:8081/";//外网IP
 	//private static String url = "http://10.0.205.11:8081/";//内网IP
-	private User user;
+	private User user = new User();
 	private DatabaseManager dba;
 	private Context context;
 	private String TAG = "effort";
@@ -79,6 +79,7 @@ public class AccountManager {
 			nm.close();
 			return null;
 		}
+		user.setLoginId(loginId);
 		addUserInfo(loginId);
 		// 判断记住密码多选框的状态
 		if (!sp.getBoolean("ISCHECK", false)) {
@@ -87,13 +88,23 @@ public class AccountManager {
 			user.setPassword("");
 		}
 		dba.insertUserInfo(user);
+		getRemoteFile(user);
+		
+		dba.close();
+		nm.close();
+		return loginId;
+	}
+	
+	public void getRemoteFile(User user) {
+		dba = DatabaseManager.getInstance();
+		dba.open();
 		dba.deleteAnnouncementByAccount(user.getAccount());
 		InputStream is = getPicture(user.getPhotoUrl());
 		String absolutePath = context.getFilesDir().getAbsolutePath();
 		AnnouncementManager am = new AnnouncementManager(absolutePath, context);
 		//am.saveStream(is, user.getPhotoName(), AnnouncementManager.picWidth, AnnouncementManager.picHeight);
 		am.inputstream2file(is, user.getPhotoName());
-		List<Announcement> annos = getAnnouncements(loginId);
+		List<Announcement> annos = getAnnouncements(user.getLoginId());
 		for(Announcement anno : annos) {
 			Log.e(TAG, anno.getImageUrl());
 			anno.setAccount(user.getAccount());
@@ -109,16 +120,15 @@ public class AccountManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		dba.close();
-		nm.close();
-		return loginId;
 	}
 
-	private User addUserInfo(String loginId) {
+	public User addUserInfo(String loginId) {
+		Log.e(TAG, loginId);
+		Log.e(TAG, url);
 		String out = "";
 		try {
 			out = nm.executeGet(url + "GscSupport.svc/Officers/" + loginId);
-			nm.close();
+			//nm.close();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -126,6 +136,7 @@ public class AccountManager {
 		}
 		JSONObject jsonObject = null;
 		try {
+			Log.e(TAG, out);
 			jsonObject = new JSONObject(out);
 			user.setOperation(jsonObject.getString("operation"));
 			user.setPhotoUrl(jsonObject.getString("picture").replaceAll("\\\\", "/"));
@@ -134,11 +145,13 @@ public class AccountManager {
 			user.setOrg(jsonObject.getString("unit"));
 			user.setWorkNum(jsonObject.getString("workNum"));
 			user.setLoginId(loginId);
+			nm.close();
 			return user;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		nm.close();
 		return null;
 	}
 	private List<Announcement> getAnnouncements(String loginId) {

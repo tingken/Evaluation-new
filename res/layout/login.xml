@@ -55,6 +55,7 @@
 		            android:layout_height="fill_parent"
 		            android:layout_marginLeft="15px"
 		            android:background="@null"
+		            android:textSize="18px"
 		            android:hint="密码"
 		            android:textColor="#ffffff"
 		            android:maxLines="200"
