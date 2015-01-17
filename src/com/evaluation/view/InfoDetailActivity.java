@@ -87,7 +87,6 @@ public class InfoDetailActivity extends Activity implements OnGestureListener {
 		    	if(anno.getRepDate() != null && !anno.getRepDate().equals("null"))
 		    		repDateView.setText(anno.getRepDate());
 		    	contentView = (TextView) findViewById(R.id.content);
-		    	contentView.setHorizontallyScrolling(true);
 				contentView.setMovementMethod(ScrollingMovementMethod.getInstance());
 		    	if(anno.getContent() != null && !anno.getContent().equals("null"))
 		    		contentView.setText(anno.getContent());

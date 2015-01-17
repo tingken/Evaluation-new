@@ -138,10 +138,22 @@
 		    	        android:layout_marginTop="12px"
 		    	        android:layout_marginLeft="10px"
 		    	        android:orientation="vertical" >
+		    	    	<com.evaluation.util.MarqueeView
+			    	        android:layout_width="match_parent"
+			    	        android:layout_height="wrap_content"
+			    	        android:layout_marginTop="80px"
+			    	        android:layout_marginLeft="15px"
+			    	        android:id="@+id/user_title"
+			    	        android:marqueeRepeatLimit="marquee_forever"
+			    	        android:singleLine="true"
+							android:ellipsize="marquee"
+							android:focusableInTouchMode="true"
+							android:focusable="true"
+			    	        android:textSize="30px"
+			    	        android:textColor="#c61820"/>
 			    	    <com.evaluation.util.MarqueeView
 			    	        android:layout_width="match_parent"
 			    	        android:layout_height="wrap_content"
-			    	        android:layout_marginTop="120px"
 			    	        android:layout_marginLeft="15px"
 			    	        android:id="@+id/user_name"
 			    	        android:marqueeRepeatLimit="marquee_forever"
@@ -225,8 +237,7 @@
 		    	        android:ellipsize="marquee"
 				        android:focusable="true" 
 				        android:marqueeRepeatLimit="marquee_forever" 
-				        android:focusableInTouchMode="true" 
-				        android:scrollHorizontally="true"
+				        android:focusableInTouchMode="true"
 		    	        android:scrollbars="vertical"
 		    	        android:textSize="18px"
 		    	        android:textColor="#000000" />

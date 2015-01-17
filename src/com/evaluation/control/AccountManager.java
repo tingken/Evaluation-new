@@ -23,8 +23,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class AccountManager {
-	private static String url = "http://125.71.200.138:8081/";//外网IP
-	//private static String url = "http://10.0.205.11:8081/";//内网IP
+	//private static String url = "http://125.71.200.138:8081/";//外网IP
+	private static String url = "http://10.0.205.11:8081/";//内网IP
 	private User user = new User();
 	private DatabaseManager dba;
 	private Context context;
@@ -32,6 +32,7 @@ public class AccountManager {
 	private String DISCONNECT = "DISCONNECT";
 	private String WRONGPW = "WRONGPW";
 	private SharedPreferences sp;
+	private SharedPreferences userSp;
 	private NetworkManager nm;
 	public static String getUrl() {
 		return url;
@@ -80,6 +81,9 @@ public class AccountManager {
 			nm.close();
 			return null;
 		}
+		userSp = context.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
+		userSp.edit().putString("account", user.getAccount()).commit();
+		userSp.edit().putString("loginId", loginId).commit();
 		user.setLoginId(loginId);
 		addUserInfo(loginId);
 		// 判断记住密码多选框的状态
@@ -165,12 +169,13 @@ public class AccountManager {
 		}
 		JSONObject jsonObject = null;
 		try {
-			//Log.e(TAG, out);
+			Log.e(TAG, out);
 			jsonObject = new JSONObject(out);
 			user.setOperation(jsonObject.getString("operation"));
 			user.setPhotoUrl(jsonObject.getString("picture").replaceAll("\\\\", "/"));
 			user.setPhotoName(FileManager.getFileName(jsonObject.getString("picture")));
 			user.setName(jsonObject.getString("showName"));
+			user.setTitle(jsonObject.getString("windowTitle"));
 			user.setOrg(jsonObject.getString("unit"));
 			user.setWorkNum(jsonObject.getString("workNum"));
 			user.setLoginId(loginId);

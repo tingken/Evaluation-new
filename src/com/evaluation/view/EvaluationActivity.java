@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -55,6 +56,7 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 	private int MY_DATA_CHECK_CODE = 0;
 	private boolean _isBound;
 	private HomeService _boundService;
+	private SharedPreferences sp;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -66,7 +68,9 @@ public class EvaluationActivity extends Activity implements OnClickListener, OnI
 		//loginId = this.getIntent().getStringExtra("loginId");
 		((MyApplication)this.getApplication()).addActivity(this);
 		account = ((MyApplication)this.getApplication()).getAccount();
-		loginId = ((MyApplication)this.getApplication()).getLoginId();
+		//loginId = ((MyApplication)this.getApplication()).getLoginId();
+		sp = this.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
+		loginId = sp.getString("loginId", "");
 //		setting = (ImageButton) findViewById(R.id.setting);
 //		setting.setOnClickListener(new OnClickListener(){
 //

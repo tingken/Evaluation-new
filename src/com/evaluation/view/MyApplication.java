@@ -20,7 +20,7 @@ public class MyApplication extends Application {
 	private boolean statu = false;
 	private boolean evaluatable = false;
 	private String account = "";
-	private String loginId = "";
+	//private String loginId = "";
 	private String TAG = "effort";
 	
 	public void onCreate() {
@@ -55,12 +55,12 @@ public class MyApplication extends Application {
 	public void setAccount(String account) {
 		this.account = account;
 	}
-	public String getLoginId() {
-		return loginId;
-	}
-	public void setLoginId(String loginId) {
-		this.loginId = loginId;
-	}
+//	public String getLoginId() {
+//		return loginId;
+//	}
+//	public void setLoginId(String loginId) {
+//		this.loginId = loginId;
+//	}
 	// add Activity  
     public void addActivity(Activity activity) { 
         mList.add(activity);

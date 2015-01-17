@@ -28,6 +28,7 @@ import com.evaluation.util.DotView;
 import com.evaluation.util.LeaveDialog;
 import com.evaluation.util.MarqueeView;
 import com.evaluation.util.PagerAdapter;
+import com.evaluation.util.ThreeButtonDialog;
 import com.evaluation.util.VerticalViewPager;
 import com.evaluation.util.VerticalViewPager.OnPageChangeListener;
 import com.romainpiel.shimmer.Shimmer;
@@ -109,7 +110,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private TextView dateView;
 	private TextView timeView;
 	private ImageView photoView;
-	private MarqueeView userNameView, accountView, orgView;
+	private MarqueeView userNameView, userTitleView, accountView, orgView;
 	private TextView settingName, emNo, version;
 	private MarqueeView macAddr;
 	private String dateValue;
@@ -124,7 +125,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private Handler announHandler = new AnnounHandler();
 	private DatabaseManager dba;
 	private SharedPreferences sp;
-	private String loginId;
+	//private String loginId;
 	private String account;
 	private User user;
 	private List<Announcement> annoList;
@@ -145,6 +146,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private ComplaintDialog complaintDialog;
 	private LeaveMessage leaveMessage = new LeaveMessage();
 	private boolean firstTime = true;
+	ThreeButtonDialog threeButtonDialog;
 
 	// An ExecutorService that can schedule commands to run after a given delay,
 	// or to execute periodically.
@@ -240,12 +242,12 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
         setContentView(R.layout.main);
         ((MyApplication)this.getApplication()).addActivity(this);
         account = this.getIntent().getStringExtra("account");
-		loginId = this.getIntent().getStringExtra("loginId");
+		//loginId = this.getIntent().getStringExtra("loginId");
 		sp = this.getSharedPreferences("userInfo", Context.MODE_WORLD_READABLE);
-		sp.edit().putString("account", account).commit();
-		sp.edit().putString("loginId", loginId).commit();
+//		sp.edit().putString("account", account).commit();
+//		sp.edit().putString("loginId", loginId).commit();
 		((MyApplication)this.getApplication()).setAccount(account);
-		((MyApplication)this.getApplication()).setLoginId(loginId);
+		//((MyApplication)this.getApplication()).setLoginId(loginId);
 		((MyApplication)this.getApplication()).setEvaluatable(true);
         try {
 			PackageInfo packInfo = this.getPackageManager().getPackageInfo(this.getPackageName(), 0);
@@ -267,6 +269,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		
 		photoView = (ImageView) findViewById(R.id.photo);
 		userNameView = (MarqueeView) findViewById(R.id.user_name);
+		userTitleView = (MarqueeView) findViewById(R.id.user_title);
 		//userNameView.setTypeface(MSFace); //微软雅黑
 		accountView = (MarqueeView) findViewById(R.id.account);
 		accountView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG ); //下划线
@@ -298,7 +301,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 				// TODO Auto-generated method stub
 				//跳转界面  
                 Intent intent = new Intent(MainActivity.this,EvaluationActivity.class);
-                intent.putExtra("loginId", loginId);
+                //intent.putExtra("loginId", loginId);
                 MainActivity.this.startActivity(intent);
 			}
 		});
@@ -357,31 +360,55 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			@Override
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
-
-				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);           
-				//builder.setIcon(R.drawable.icon);  
-				//builder.setTitle("投票");  
-				builder.setMessage("投诉后受理投诉工作人员将在5分钟内到达现场 是否等待?");  
-				builder.setPositiveButton("是", new DialogInterface.OnClickListener() {  
-				    public void onClick(DialogInterface dialog, int whichButton) {  
-				        //
-				    	sendComplaint("","","","群众发起了一个投诉。");
-				    }  
+//				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);           
+//				//builder.setIcon(R.drawable.icon);  
+//				//builder.setTitle("投票");  
+//				builder.setMessage("投诉后受理投诉工作人员将在5分钟内到达现场 是否等待?");  
+//				builder.setPositiveButton("是", new DialogInterface.OnClickListener() {  
+//				    public void onClick(DialogInterface dialog, int whichButton) {  
+//				        //
+//				    	sendComplaint("","","","群众发起了一个投诉。");
+//				    }  
+//				});  
+//				builder.setNeutralButton("否", new DialogInterface.OnClickListener() {  
+//				    public void onClick(DialogInterface dialog, int whichButton) {  
+//				        //                     
+//				    }  
+//				});  
+//				builder.setNegativeButton("我要匿名投诉", new DialogInterface.OnClickListener() {  
+//				    public void onClick(DialogInterface dialog, int whichButton) {  
+//				        //   
+//						Intent intent = new Intent(MainActivity.this,ComplaintActivity.class);
+//						MainActivity.this.startActivity(intent);
+//				    	startService();
+//				    }  
+//				});  
+//				builder.create().show();
+				threeButtonDialog = new ThreeButtonDialog(MainActivity.this, R.layout.three_button_dialog, R.style.Theme_dialog);
+				threeButtonDialog.setMessage("投诉后受理投诉工作人员将在5分钟内到达现场，是否等待?");
+				threeButtonDialog.setPositiveButton("是", new OnClickListener() {  
+					public void onClick(View view) {  
+						//
+						sendComplaint("","","","群众发起了一个投诉。");
+						threeButtonDialogDismiss();
+					}  
 				});  
-				builder.setNeutralButton("否", new DialogInterface.OnClickListener() {  
-				    public void onClick(DialogInterface dialog, int whichButton) {  
-				        //                     
-				    }  
+				threeButtonDialog.setNeutralButton("否", new OnClickListener() {  
+					public void onClick(View view) {  
+			        //           
+						threeButtonDialogDismiss();
+					}  
 				});  
-				builder.setNegativeButton("我要匿名投诉", new DialogInterface.OnClickListener() {  
-				    public void onClick(DialogInterface dialog, int whichButton) {  
-				        //   
+				threeButtonDialog.setNegativeButton("我要匿名投诉", new OnClickListener() {  
+					public void onClick(View view) {  
+						//   
 						Intent intent = new Intent(MainActivity.this,ComplaintActivity.class);
 						MainActivity.this.startActivity(intent);
-				    	startService();
-				    }  
-				});  
-				builder.create().show();
+						startService();
+						threeButtonDialogDismiss();
+					}  
+				}); 
+				threeButtonDialog.show();
 			}
 			
 		});
@@ -466,7 +493,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		sp.edit().remove("account");
 		sp.edit().remove("loginId");
 		stopService();
-		((MyApplication)this.getApplication()).setLoginId("");
+		//((MyApplication)this.getApplication()).setLoginId("");
 		if(mBroadcastReceiver != null)
 			this.unregisterReceiver(mBroadcastReceiver);
 //		if(((MyApplication)this.getApplication()).getActivityCount() <= 1)
@@ -704,17 +731,22 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private class UIUpdateTask extends TimerTask {
 		public void run() {
 			Log.e(TAG, "定时更新界面");
+			if(scheduledExecutorService != null) {
+				scheduledExecutorService.shutdown();
+				scheduledExecutorService = null;
+			}
 			if(!firstTime) {
 				AccountManager acm = new AccountManager(MainActivity.this);
 				DatabaseManager.initializeInstance(MainActivity.this);
 				dba = DatabaseManager.getInstance();
 				dba.open();
 				user = dba.findUserByAccount(account);
-				acm.addUserInfo(loginId);
-				acm.getRemoteFile(user);
+				String loginId = acm.login(user);
 				if(dba != null)
 					dba.close();
 				acm.close();
+				if(loginId == null || loginId.equals("DISCONNECT") || loginId.equals("WRONGPW"))
+					return;
 			}
 			firstTime = false;
 			
@@ -758,6 +790,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			if(dba != null)
 				dba.close();
 			announHandler.sendEmptyMessage(1);
+			Intent intent = new Intent("UIUPDATE");
+			MainActivity.this.sendBroadcast(intent);
 		}
 	}
 	private class AnnounHandler extends Handler {
@@ -768,7 +802,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			// 设置一个监听器，当ViewPager中的页面改变时调用
 			viewPager.setOnPageChangeListener(new MyPageChangeListener());
 			if(user != null) {
-				userNameView.setText(user.getName());
+//				userNameView.setText(user.getName());
+//				userTitleView.setText(user.getTitle());
+				if(user.getTitle().equals("")){
+					userNameView.setText(user.getName());
+					userTitleView.setText("");
+				}else{
+					userNameView.setText(user.getTitle());
+					userTitleView.setText(user.getName());
+				}
 				accountView.setText(user.getWorkNum());
 				orgView.setText(user.getOrg());
 				acceptBiz.setText(user.getOperation());
@@ -858,7 +900,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 					// TODO Auto-generated method stub
 					pop.dismiss();
 					((MyApplication)MainActivity.this.getApplication()).setAccount("");
-					((MyApplication)MainActivity.this.getApplication()).setLoginId("");
+					//((MyApplication)MainActivity.this.getApplication()).setLoginId("");
 					MainActivity.this.startActivity(new Intent(MainActivity.this, LoginActivity.class));
 					MainActivity.this.finish();
 				}
@@ -1005,7 +1047,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		}else {
 			Intent intent = new Intent(MainActivity.this,WebActivity.class);
 			intent.putExtra("tag", tag);
-			intent.putExtra("loginId", loginId);
+			//intent.putExtra("loginId", loginId);
 			MainActivity.this.startActivity(intent);
 		}
 	}
@@ -1222,5 +1264,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 				}
 			}
 		}
+	}
+	private void threeButtonDialogDismiss() {
+		if(threeButtonDialog != null)
+			threeButtonDialog.dismiss();
 	}
 }

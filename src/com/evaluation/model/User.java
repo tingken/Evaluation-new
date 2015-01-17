@@ -6,6 +6,7 @@ public class User {
 	private String password;
 	private String loginId;
 	private String name;
+	private String title;
 	private String org;
 	private String workNum;
 	private String photoName;
@@ -35,6 +36,15 @@ public class User {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		if(title == null || title.equals("null"))
+			this.title = "";
+		else
+			this.title = title;
 	}
 	public String getOrg() {
 		return org;

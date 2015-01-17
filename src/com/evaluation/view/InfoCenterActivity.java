@@ -105,6 +105,7 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
 		dateThread.start();
 		registerReceiver(mBroadcastReceiver, new IntentFilter("TIMEOUT"));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("LEAVE_INFO"));
+		registerReceiver(mBroadcastReceiver, new IntentFilter("UIUPDATE"));
     }
  // 设置标题上的时间
  	private Handler dateHandler = new Handler() {
@@ -114,6 +115,16 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
  	        weekView.setText("星期" + weekValue);
  		};
  	};
+ 	private void updateUI() {
+ 		if((pageNum-1)*numPerPage < dba.findAnnouncementsByAccount(account).size()) {
+ 			curList = dba.findOnePageAnno(account, (curPage-1) * numPerPage, numPerPage);
+ 			Log.e(TAG, "当前公告条数:" + curList.size());
+	 		adapter.clear();
+	        adapter.addAll(curPage, curList);
+	        //infoListView.setAdapter(adapter);
+	 		adapter.notifyDataSetChanged();
+ 		}
+ 	}
  	/**
 	 * 修改标题栏上的时间
 	 */
@@ -187,6 +198,9 @@ public class InfoCenterActivity extends Activity implements OnPageChangeListener
 	        	InfoCenterActivity.this.finish();
 	        } else if(intent.getAction().equals("LEAVE_INFO")) {
 	        	InfoCenterActivity.this.finish();
+	        } else if(intent.getAction().equals("UIUPDATE")){
+	        	Log.e(TAG, "通知中心刷新界面。");
+	        	updateUI();
 	        }
 		}
 	};

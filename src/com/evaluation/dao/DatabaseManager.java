@@ -37,9 +37,9 @@ public class DatabaseManager {
 	private static final String ANNOUNCE_TABLE = "ANNOUNCEMENT";
 	private static final String ACCEPTBUIZ_TABLE = "ACCEPTBUIZ";
 	private static final String EVALUATION_TABLE = "EVALUATION";
-	private static final int DB_VERSION = 6;
+	private static final int DB_VERSION = 7;
 	private static Context mContext = null;
-	private String[] userColumn = new String[] {"ACCOUNT", "PASSWORD", "LOGIN_ID", "NAME", "ORG", "WORKNO", "PHOTO_NAME", "PHOTO_URL", "OPERATION", "TIME"};
+	private String[] userColumn = new String[] {"ACCOUNT", "PASSWORD", "LOGIN_ID", "NAME", "TITLE", "ORG", "WORKNO", "PHOTO_NAME", "PHOTO_URL", "OPERATION", "TIME"};
 	private String[] annoColumn = {"ID", "USER_ACCOUNT", "IMAGE_NAME", "IMAGE_URL", "TITLE", "CONTENT", "ISSUE_DATE", "OUTOF_DATE", "STATUS"};
 	private String[] evaluationColumn = {"ID", "EVALUATION", "USER_ACCOUNT", "PASSWORD", "LOGIN_ID"};
 	private static final String CREATE_USER_TB = "CREATE TABLE "
@@ -49,6 +49,7 @@ public class DatabaseManager {
 												+ "PASSWORD TEXT,"
 												+ "LOGIN_ID TEXT,"
 												+ "NAME TEXT,"
+												+ "TITLE TEXT,"
 												+ "ORG TEXT,"
 												+ "WORKNO TEXT,"
 												+ "PHOTO_NAME TEXT,"
@@ -153,6 +154,7 @@ public class DatabaseManager {
 		initialValues.put("PASSWORD", user.getPassword());
 		initialValues.put("LOGIN_ID", user.getLoginId());
 		initialValues.put("NAME", user.getName());
+		initialValues.put("TITLE", user.getTitle());
 		initialValues.put("ORG", user.getOrg());
 		initialValues.put("WORKNO", user.getWorkNum());
 		initialValues.put("PHOTO_NAME", user.getPhotoName());
@@ -275,6 +277,7 @@ public class DatabaseManager {
 		}
 		user.setAccount(map.get("ACCOUNT"));
 		user.setName(map.get("NAME"));
+		user.setTitle(map.get("TITLE"));
 		user.setLoginId(map.get("LOGIN_ID"));
 		user.setOrg(map.get("ORG"));
 		user.setPassword(map.get("PASSWORD"));
@@ -477,6 +480,7 @@ public class DatabaseManager {
 			User user = new User();
 			user.setAccount(map.get("ACCOUNT"));
 			user.setName(map.get("NAME"));
+			user.setTitle(map.get("TITLE"));
 			user.setLoginId(map.get("LOGIN_ID"));
 			user.setOrg(map.get("ORG"));
 			user.setPassword(map.get("PASSWORD"));

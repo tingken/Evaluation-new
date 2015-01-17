@@ -211,7 +211,7 @@ public class WebActivity extends Activity {
 							664, LayoutParams.MATCH_PARENT));
 					TextView title = (TextView) view.findViewById(R.id.title);
 					TextView contentView = (TextView) view.findViewById(R.id.contentView);
-					contentView.setHorizontallyScrolling(true);
+					//contentView.setHorizontallyScrolling(true);
 					contentView.setMovementMethod(ScrollingMovementMethod.getInstance());
 					webLayout.addView(view);
 					title.setText("岗位职责");
@@ -237,7 +237,8 @@ public class WebActivity extends Activity {
 							664, LayoutParams.MATCH_PARENT));
 					TextView title = (TextView) view.findViewById(R.id.title);
 					TextView contentView = (TextView) view.findViewById(R.id.contentView);
-					contentView.setHorizontallyScrolling(true);
+					//contentView.setHorizontallyScrolling(true);
+					//contentView.setVerticalScrollBarEnabled(true);
 					contentView.setMovementMethod(ScrollingMovementMethod.getInstance());
 					webLayout.addView(view);
 					title.setText("服务承诺");

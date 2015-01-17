@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+ 	xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="1024px"
+   android:layout_height="600px"
+   android:background="@drawable/alert_bg"
+   android:orientation="vertical">
+   <TextView
+	    android:id="@+id/content"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="250px"
+		android:layout_marginLeft="140px"
+		android:layout_marginRight="10px"
+		android:textStyle="bold"
+		android:text="投诉后受理投诉工作人员将在5分钟内到达现场 ，是否等待?"
+		android:textSize="28px"
+		android:textColor="#000000"/>
+	<LinearLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="10px"
+		android:layout_marginBottom="5px"
+		android:orientation="horizontal">
+     	<Button
+     	    android:id="@+id/button1"
+     	    android:layout_width="103px"
+     	    android:layout_height="45px"
+     	    android:textSize="28px"
+     	    android:layout_marginLeft="270px"
+     	    android:textColor="#ffffff"
+     	    android:background="@drawable/yes_button"/>
+     	<Button
+     	    android:id="@+id/button2"
+     	    android:layout_width="103px"
+     	    android:layout_height="45px"
+     	    android:textSize="28px"
+     	    android:layout_marginLeft="50px"
+     	    android:textColor="#ffffff"
+     	    android:background="@drawable/no_button"/>
+     	<Button
+     	    android:id="@+id/button3"
+     	    android:layout_width="168px"
+     	    android:layout_height="45px"
+     	    android:textSize="28px"
+     	    android:layout_marginLeft="50px"
+     	    android:textColor="#ffffff"
+     	    android:background="@drawable/detail_button"
+     	    android:layout_marginRight="5px"/>
+	</LinearLayout>
+</LinearLayout>
