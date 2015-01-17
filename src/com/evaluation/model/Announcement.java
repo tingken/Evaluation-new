@@ -9,6 +9,7 @@ public class Announcement {
 	private String content;
 	private String repDate;
 	private String outOfDate;
+	private int status;
 	public int getId() {
 		return id;
 	}
@@ -56,5 +57,11 @@ public class Announcement {
 	}
 	public void setOutOfDate(String outOfDate) {
 		this.outOfDate = outOfDate;
+	}
+	public int getStatus() {
+		return status;
+	}
+	public void setStatus(int status) {
+		this.status = status;
 	}
 }

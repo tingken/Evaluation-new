@@ -74,7 +74,7 @@ public class AnnouncementManager {
 			protected void entryRemoved(boolean evicted, String key,
 					Bitmap oldValue, Bitmap newValue) {
 				if (evicted && oldValue != null && !oldValue.isRecycled()) {
-					Log.e(TAG, "recycle bitmap: " + key);
+					//Log.e(TAG, "recycle bitmap: " + key);
 					oldValue.recycle();
 					oldValue = null;
 				}

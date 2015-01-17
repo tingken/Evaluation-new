@@ -2137,7 +2137,11 @@ public class VerticalViewPager extends ViewGroup {
 
     @Override
     public void draw(Canvas canvas) {
-        super.draw(canvas);
+    	try{
+    		super.draw(canvas);
+    	}catch(Exception e) {
+    		Log.e(TAG, "VerticalViewPager.draw:" + e.toString());
+    	}
         boolean needsInvalidate = false;
 
         final int overScrollMode = ViewCompat.getOverScrollMode(this);

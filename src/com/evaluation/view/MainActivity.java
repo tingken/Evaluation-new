@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -142,11 +144,12 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	private LeaveDialog leaveDialog;// = new LeaveDialog(this, R.layout.layout_dialog, R.style.Theme_dialog);
 	private ComplaintDialog complaintDialog;
 	private LeaveMessage leaveMessage = new LeaveMessage();
+	private boolean firstTime = true;
 
 	// An ExecutorService that can schedule commands to run after a given delay,
 	// or to execute periodically.
 	private ScheduledExecutorService scheduledExecutorService = null;
-	private ScheduledExecutorService uiUpdateScheduleExecutorService = null;
+	private Timer uiUpdateTimer = null;
 
 	// 切换当前显示的图片
 	private Handler handler = new Handler() {
@@ -331,8 +334,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		registerReceiver(mBroadcastReceiver, new IntentFilter("COMPLAINT_FAIL"));
 		registerReceiver(mBroadcastReceiver, new IntentFilter("COMPLAINT_RESULT"));
 		annoList = new ArrayList<Announcement>();
-		annoThread = new AnnounThread();
-		annoThread.start();
+//		annoThread = new AnnounThread();
+//		annoThread.start();
 		
 		leaveDialog = new LeaveDialog(this, R.layout.layout_dialog, R.style.Theme_dialog);
 		leaveDialog.setCanceledOnTouchOutside(false);
@@ -399,17 +402,19 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	
 	@Override
 	protected void onStart() {
-		if(scheduledExecutorService == null && activityOver) {
+		Log.e(TAG, "MainActivity.onStart");
+		activityOver = false;
+		if(scheduledExecutorService == null && !activityOver) {
 			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 			// 当Activity显示出来后，每两秒钟切换一次图片显示
 			scheduledExecutorService.scheduleAtFixedRate(new ScrollTask(), 4, 4, TimeUnit.SECONDS);
 		}
-//		if(uiUpdateScheduleExecutorService == null && activityOver) {
-//			uiUpdateScheduleExecutorService = Executors.newSingleThreadScheduledExecutor();
-//			// 每隔一段时间更新UI
-//			uiUpdateScheduleExecutorService.scheduleAtFixedRate(new UIUpdateTask(), 1, 1, TimeUnit.MINUTES);
-//		}
-		activityOver = false;
+		if(uiUpdateTimer == null && !activityOver) {
+			//Log.e(TAG, "定时更新数据");
+			uiUpdateTimer = new Timer(true);
+			// 每隔一段时间更新UI
+			uiUpdateTimer.schedule(new UIUpdateTask(), 0, 1 * 60 * 1000);
+		}
 		Thread dateThread = new DateThread();
 		dateThread.start();
 		Thread leaveMessageThread = new LeaveMessageThread();
@@ -431,10 +436,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			scheduledExecutorService = null;
 		}
 		
-		if(uiUpdateScheduleExecutorService != null) {
-			uiUpdateScheduleExecutorService.shutdown();
-			uiUpdateScheduleExecutorService = null;
-		}
+//		if(uiUpdateTimer != null) {
+//			uiUpdateTimer.cancel();
+//			uiUpdateTimer = null;
+//		}
 		leaveDialog.dismiss();
 		complaintDialog.dismiss();
 		activityOver = true;
@@ -446,9 +451,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 	@Override
 	public void onDestroy() {
 		Log.e(TAG, "onDestory");
-		if(uiUpdateScheduleExecutorService != null) {
+		if(scheduledExecutorService != null) {
 			scheduledExecutorService.shutdown();
 			scheduledExecutorService = null;
+		}
+		if(uiUpdateTimer != null) {
+			uiUpdateTimer.cancel();
+			uiUpdateTimer = null;
 		}
 		if(bitmap != null){
 			bitmap.recycle();
@@ -533,27 +542,27 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		}
 	}
 	
-	private class UIUpdateTask implements Runnable {
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			Log.d(TAG, "更新UI线程启动");
-			AccountManager acm = new AccountManager(MainActivity.this);
-			DatabaseManager.initializeInstance(MainActivity.this);
-			dba = DatabaseManager.getInstance();
-			dba.open();
-			user = dba.findUserByAccount(account);
-			acm.addUserInfo(loginId);
-			acm.getRemoteFile(user);
-			if(annoThread == null)
-				annoThread = new AnnounThread();
-			annoThread.start();
-			if(dba != null)
-				dba.close();
-		}
-		
-	}
+//	private class UIUpdateTask implements Runnable {
+//
+//		@Override
+//		public void run() {
+//			// TODO Auto-generated method stub
+//			Log.d(TAG, "更新UI线程启动");
+//			AccountManager acm = new AccountManager(MainActivity.this);
+//			DatabaseManager.initializeInstance(MainActivity.this);
+//			dba = DatabaseManager.getInstance();
+//			dba.open();
+//			user = dba.findUserByAccount(account);
+//			acm.addUserInfo(loginId);
+//			acm.getRemoteFile(user);
+//			//if(annoThread == null)
+//			annoThread = new AnnounThread();
+//			annoThread.start();
+//			if(dba != null)
+//				dba.close();
+//		}
+//		
+//	}
 
 	/**
 	 * 当ViewPager中页面的状态发生改变时调用
@@ -629,6 +638,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 
 		@Override
 		public Object instantiateItem(View arg0, int arg1) {
+			if(annoList.size() < 1)
+				return null;
+			if(arg1 >= annoList.size())
+				arg1 = arg1 % annoList.size();
 			ImageView imageView = new ImageView(MainActivity.this);
 			Bitmap bmp = am.getBitmapFromMemCache(arg1, annoList.get(arg1).getImageName());
 			if(bmp != null && !bmp.isRecycled())
@@ -652,7 +665,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		@Override
 		public void destroyItem(View arg0, int arg1, Object arg2) {
 			((VerticalViewPager) arg0).removeView((View) arg2);
-//			am.removeImageCache(arg1, annoList.get(arg1).getImageName());
+			//am.removeImageCache(arg1, annoList.get(arg1).getImageName());
 //			Bitmap bmp = (Bitmap) ((ImageView) arg2).getDrawingCache();
 //			if (null != bmp && !bmp.isRecycled()) {
 //				bmp.recycle();
@@ -688,8 +701,24 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 		}
 	}
 	
-	private class AnnounThread extends Thread {
+	private class UIUpdateTask extends TimerTask {
 		public void run() {
+			Log.e(TAG, "定时更新界面");
+			if(!firstTime) {
+				AccountManager acm = new AccountManager(MainActivity.this);
+				DatabaseManager.initializeInstance(MainActivity.this);
+				dba = DatabaseManager.getInstance();
+				dba.open();
+				user = dba.findUserByAccount(account);
+				acm.addUserInfo(loginId);
+				acm.getRemoteFile(user);
+				if(dba != null)
+					dba.close();
+				acm.close();
+			}
+			firstTime = false;
+			
+			//annoList.clear();
 			DatabaseManager.initializeInstance(MainActivity.this);
 			dba = DatabaseManager.getInstance();
 			dba.open();
@@ -699,9 +728,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			if(user != null)
 				bitmap = am.getBitmapByName(user.getPhotoName());
 			List<Announcement> allAnnos = dba.findAnnouncementsByAccount(account);
+			annoList.clear();
 			for(Announcement ann : allAnnos) {
 				if(afterNow(ann.getOutOfDate(), "yyyy年MM月dd日") || ann.getOutOfDate().equals("null"))
 					annoList.add(ann);
+				//Log.e(TAG, "标题:" + ann.getTitle());
 			}
 			titles = new String[annoList.size()];
 			dates = new String[annoList.size()];
@@ -753,7 +784,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
 			
 			
 			LinearLayout dotsLayout = (LinearLayout) findViewById(R.id.dots);
-			//dotsLayout.removeAllViews();
+			dotsLayout.removeAllViews();
 			dots = new ArrayList<View>();
 			for(int i = 0; i < annoList.size(); i++) {
 				View dot = new DotView(MainActivity.this);
@@ -1116,6 +1147,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener {
         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);  
         WifiInfo info = wifi.getConnectionInfo();  
         String mac = info.getMacAddress();
+        if(mac == null)
+        	return "";
         return mac.replace(":", "");   
     }
 	public void sendComplaint(String name, String tel, String email, String content){

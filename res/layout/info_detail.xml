@@ -84,6 +84,10 @@
 		        android:text="无内容"
 		        android:layout_marginTop="10dp"
 		        android:textSize="20px"
+		        android:scrollHorizontally="true"
+        		android:singleLine="false"
+        		android:maxLines="13"
+        		android:scrollbars="vertical"
 		        android:textColor="#000000"/>
 		</LinearLayout>
 	</RelativeLayout>

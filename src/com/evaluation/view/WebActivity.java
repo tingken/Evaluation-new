@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateFormat;
 import android.text.format.Time;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -210,6 +211,8 @@ public class WebActivity extends Activity {
 							664, LayoutParams.MATCH_PARENT));
 					TextView title = (TextView) view.findViewById(R.id.title);
 					TextView contentView = (TextView) view.findViewById(R.id.contentView);
+					contentView.setHorizontallyScrolling(true);
+					contentView.setMovementMethod(ScrollingMovementMethod.getInstance());
 					webLayout.addView(view);
 					title.setText("岗位职责");
 					contentView.setText(data);
@@ -234,6 +237,8 @@ public class WebActivity extends Activity {
 							664, LayoutParams.MATCH_PARENT));
 					TextView title = (TextView) view.findViewById(R.id.title);
 					TextView contentView = (TextView) view.findViewById(R.id.contentView);
+					contentView.setHorizontallyScrolling(true);
+					contentView.setMovementMethod(ScrollingMovementMethod.getInstance());
 					webLayout.addView(view);
 					title.setText("服务承诺");
 					contentView.setText(data);

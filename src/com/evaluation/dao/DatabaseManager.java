@@ -37,10 +37,10 @@ public class DatabaseManager {
 	private static final String ANNOUNCE_TABLE = "ANNOUNCEMENT";
 	private static final String ACCEPTBUIZ_TABLE = "ACCEPTBUIZ";
 	private static final String EVALUATION_TABLE = "EVALUATION";
-	private static final int DB_VERSION = 5;
+	private static final int DB_VERSION = 6;
 	private static Context mContext = null;
 	private String[] userColumn = new String[] {"ACCOUNT", "PASSWORD", "LOGIN_ID", "NAME", "ORG", "WORKNO", "PHOTO_NAME", "PHOTO_URL", "OPERATION", "TIME"};
-	private String[] annoColumn = {"ID", "USER_ACCOUNT", "IMAGE_NAME", "IMAGE_URL", "TITLE", "CONTENT", "ISSUE_DATE", "OUTOF_DATE"};
+	private String[] annoColumn = {"ID", "USER_ACCOUNT", "IMAGE_NAME", "IMAGE_URL", "TITLE", "CONTENT", "ISSUE_DATE", "OUTOF_DATE", "STATUS"};
 	private String[] evaluationColumn = {"ID", "EVALUATION", "USER_ACCOUNT", "PASSWORD", "LOGIN_ID"};
 	private static final String CREATE_USER_TB = "CREATE TABLE "
 												+ USER_TABLE
@@ -64,7 +64,8 @@ public class DatabaseManager {
 												+ "CONTENT TEXT,"
 												+ "USER_ACCOUNT TEXT,"
 												+ "ISSUE_DATE TEXT," 
-												+ "OUTOF_DATE TEXT)";
+												+ "OUTOF_DATE TEXT,"
+												+ "STATUS INTEGER)";
 	private static final String CREATE_ACCEPTBUIZ_TB = "CREATE TABLE "
 												+ ACCEPTBUIZ_TABLE + " (ID"
 												+ " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -187,6 +188,7 @@ public class DatabaseManager {
 		initialValues.put("CONTENT", anno.getContent());
 		initialValues.put("ISSUE_DATE", anno.getRepDate());
 		initialValues.put("OUTOF_DATE", anno.getOutOfDate());
+		initialValues.put("STATUS", anno.getStatus());
 		return mSQLiteDatabase.insert(ANNOUNCE_TABLE, KEY_ID, initialValues);
 	}
 	public long insertEvaluation(Evaluation eval) {
@@ -233,11 +235,16 @@ public class DatabaseManager {
 		return mSQLiteDatabase.delete(USER_TABLE, "ACCOUNT=\'" + account + "\'", null) > 0;
 	}
 	public boolean deleteAnnouncementByAccount(String account){
-		List<Announcement> anns = findAnnouncementsByAccount(account);
+		List<Announcement> anns = findInvalidAnnouncementsByAccount(account);
 		for(Announcement ann : anns) {
 			FileManager.delete(ann.getImageName());
 		}
-		return mSQLiteDatabase.delete(ANNOUNCE_TABLE, "USER_ACCOUNT=\'" + account +"\'", null) > 0;
+		return mSQLiteDatabase.delete(ANNOUNCE_TABLE, "USER_ACCOUNT=\'" + account +"\' and STATUS = 0", null) > 0;
+	}
+	public int setAnnouncementStatusByAccount(String account){
+		ContentValues initialValues = new ContentValues();
+		initialValues.put("STATUS", 0);
+		return mSQLiteDatabase.update(ANNOUNCE_TABLE, initialValues, "USER_ACCOUNT=\'" + account + "\'", null);
 	}
 	public User findUserByAccount(String account) {
 		//ACCOUNT, PASSWORD, NAME, ORG, WINNO, PHOTO_NAME
@@ -281,7 +288,7 @@ public class DatabaseManager {
 	public List<Announcement> findAnnouncementsByAccount(String account) {
 		Cursor mCursor = null;
 		List<Announcement> annoList = new ArrayList<Announcement>();
-		mCursor = mSQLiteDatabase.query(false, ANNOUNCE_TABLE, annoColumn, "USER_ACCOUNT" + "=" + "\'" + account + "\'", null, null, null, null, null);
+		mCursor = mSQLiteDatabase.query(false, ANNOUNCE_TABLE, annoColumn, "USER_ACCOUNT" + "=" + "\'" + account + "\' and STATUS = 1", null, null, null, null, null);
 		if(mCursor != null){
 			mCursor.moveToFirst();
 		}
@@ -313,6 +320,48 @@ public class DatabaseManager {
 			anno.setContent(map.get("CONTENT"));
 			anno.setRepDate(map.get("ISSUE_DATE"));
 			anno.setOutOfDate(map.get("OUTOF_DATE"));
+			anno.setStatus(Integer.parseInt(map.get("STATUS")));
+			annoList.add(anno);
+		}
+		return annoList;
+	}
+	
+	public List<Announcement> findInvalidAnnouncementsByAccount(String account) {
+		Cursor mCursor = null;
+		List<Announcement> annoList = new ArrayList<Announcement>();
+		mCursor = mSQLiteDatabase.query(false, ANNOUNCE_TABLE, annoColumn, "USER_ACCOUNT" + "=" + "\'" + account + "\' and STATUS = 0", null, null, null, null, null);
+		if(mCursor != null){
+			mCursor.moveToFirst();
+		}
+		List<Map<String, String>> mapList = new ArrayList<Map<String, String>>();
+		while(!mCursor.isAfterLast()) {
+			Map<String, String> map = new HashMap<String, String>();
+			for(String column : annoColumn) {
+				int columnIndex = mCursor.getColumnIndexOrThrow(column);
+				String value;
+				try{
+					value = mCursor.getString(columnIndex);
+				}catch(Exception e)
+				{
+					value = null;
+				}
+				map.put(column, value);
+			}
+			mapList.add(map);
+			mCursor.moveToNext();
+		}
+		for(Map<String, String> map : mapList) {
+			//USER_ACCOUNT, FILE_NAME, TITLE
+			Announcement anno = new Announcement();
+			anno.setId(Integer.parseInt(map.get("ID")));
+			anno.setAccount(map.get("USER_ACCOUNT"));
+			anno.setImageName(map.get("IMAGE_NAME"));
+			anno.setImageUrl(map.get("IMAGE_URL"));
+			anno.setTitle(map.get("TITLE"));
+			anno.setContent(map.get("CONTENT"));
+			anno.setRepDate(map.get("ISSUE_DATE"));
+			anno.setOutOfDate(map.get("OUTOF_DATE"));
+			anno.setStatus(Integer.parseInt(map.get("STATUS")));
 			annoList.add(anno);
 		}
 		return annoList;
@@ -353,6 +402,7 @@ public class DatabaseManager {
 		anno.setContent(map.get("CONTENT"));
 		anno.setRepDate(map.get("ISSUE_DATE"));
 		anno.setOutOfDate(map.get("OUTOF_DATE"));
+		anno.setStatus(Integer.parseInt(map.get("STATUS")));
 		Log.e(TAG, "数据库时间" + map.get("TIME"));
 		return anno;
 	}
@@ -361,7 +411,7 @@ public class DatabaseManager {
 		Cursor mCursor = null;
 		List<Announcement> annoList = new ArrayList<Announcement>();
 		//mCursor = mSQLiteDatabase.query(false, ANNOUNCE_TABLE, annoColumn, "USER_ACCOUNT" + "=" + "\'" + account + "\'", null, null, null, null, " " + size + " offset " + start);
-		String sql = "select * from " + ANNOUNCE_TABLE + " where USER_ACCOUNT=\'" + account + "\' limit " + size + " offset " + start;
+		String sql = "select * from " + ANNOUNCE_TABLE + " where USER_ACCOUNT=\'" + account + "\' and STATUS = 1 limit " + size + " offset " + start;
 		Log.e(TAG, sql);
 		mCursor = mSQLiteDatabase.rawQuery(sql, null);
 		if(mCursor != null){

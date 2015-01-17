@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateFormat;
 import android.text.format.Time;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.GestureDetector;
@@ -79,14 +80,18 @@ public class InfoDetailActivity extends Activity implements OnGestureListener {
         if(currentItem >= 0) {
 	        Announcement anno = dba.findAnnouncementsById(currentItem);
 	        titleView = (TextView) findViewById(R.id.title);
-	        if(anno.getTitle() != null && !anno.getTitle().equals("null"))
-	        	titleView.setText(anno.getTitle());
-	    	repDateView = (TextView) findViewById(R.id.rep_date);
-	    	if(anno.getRepDate() != null && !anno.getRepDate().equals("null"))
-	    		repDateView.setText(anno.getRepDate());
-	    	contentView = (TextView) findViewById(R.id.content);
-	    	if(anno.getContent() != null && !anno.getContent().equals("null"))
-	    		contentView.setText(anno.getContent());
+	        if(anno != null){
+		        if(anno.getTitle() != null && !anno.getTitle().equals("null"))
+		        	titleView.setText(anno.getTitle());
+		    	repDateView = (TextView) findViewById(R.id.rep_date);
+		    	if(anno.getRepDate() != null && !anno.getRepDate().equals("null"))
+		    		repDateView.setText(anno.getRepDate());
+		    	contentView = (TextView) findViewById(R.id.content);
+		    	contentView.setHorizontallyScrolling(true);
+				contentView.setMovementMethod(ScrollingMovementMethod.getInstance());
+		    	if(anno.getContent() != null && !anno.getContent().equals("null"))
+		    		contentView.setText(anno.getContent());
+	        }
         }
     	dba.close();
 		Thread dateThread = new DateThread();

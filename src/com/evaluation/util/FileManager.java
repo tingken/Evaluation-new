@@ -52,4 +52,11 @@ public class FileManager {
 		int index = str.lastIndexOf("/") > str.lastIndexOf("\\") ? str.lastIndexOf("/") : str.lastIndexOf("\\");
 		return str.substring(index+1);
 	}
+	public static String getFileType(String fileName) {
+		if(fileName == null || fileName.trim().equals("")){
+			return "";
+		}
+		int index = fileName.lastIndexOf(".");
+		return fileName.substring(index+1);
+	}
 }

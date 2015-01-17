@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -88,9 +89,32 @@ public class AccountManager {
 			user.setPassword("");
 		}
 		dba.insertUserInfo(user);
-		getRemoteFile(user);
 		
+//		dba.deleteAnnouncementByAccount(user.getAccount());
+//
+//		InputStream is = getPicture(user.getPhotoUrl());
+//		String absolutePath = context.getFilesDir().getAbsolutePath();
+//		AnnouncementManager am = new AnnouncementManager(absolutePath, context);
+//		//am.saveStream(is, user.getPhotoName(), AnnouncementManager.picWidth, AnnouncementManager.picHeight);
+//		am.inputstream2file(is, user.getPhotoName());
+//		List<Announcement> annos = getAnnouncements(loginId);
+//		for(Announcement anno : annos) {
+//			Log.e(TAG, anno.getImageUrl());
+//			anno.setAccount(user.getAccount());
+//			dba.insertAnnouncement(anno);
+//			InputStream ins = getPicture(anno.getImageUrl());
+//			//am.saveStream(is, user.getPhotoName(), AnnouncementManager.picWidth, AnnouncementManager.picHeight);
+//			am.inputstream2file(ins, anno.getImageName());
+//		}
+//		try {
+//			if(is != null)
+//				is.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		dba.close();
+		getRemoteFile(user);
 		nm.close();
 		return loginId;
 	}
@@ -98,7 +122,9 @@ public class AccountManager {
 	public void getRemoteFile(User user) {
 		dba = DatabaseManager.getInstance();
 		dba.open();
-		dba.deleteAnnouncementByAccount(user.getAccount());
+		//dba.deleteAnnouncementByAccount(user.getAccount());
+		dba.setAnnouncementStatusByAccount(user.getAccount());
+		Log.e(TAG, user.getPhotoUrl());
 		InputStream is = getPicture(user.getPhotoUrl());
 		String absolutePath = context.getFilesDir().getAbsolutePath();
 		AnnouncementManager am = new AnnouncementManager(absolutePath, context);
@@ -106,13 +132,15 @@ public class AccountManager {
 		am.inputstream2file(is, user.getPhotoName());
 		List<Announcement> annos = getAnnouncements(user.getLoginId());
 		for(Announcement anno : annos) {
-			Log.e(TAG, anno.getImageUrl());
+			Log.e(TAG, "标题：" + anno.getTitle());
 			anno.setAccount(user.getAccount());
+			anno.setStatus(1);
 			dba.insertAnnouncement(anno);
 			InputStream ins = getPicture(anno.getImageUrl());
 			//am.saveStream(is, user.getPhotoName(), AnnouncementManager.picWidth, AnnouncementManager.picHeight);
 			am.inputstream2file(ins, anno.getImageName());
 		}
+		dba.deleteAnnouncementByAccount(user.getAccount());
 		try {
 			if(is != null)
 				is.close();
@@ -120,6 +148,7 @@ public class AccountManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		dba.close();
 	}
 
 	public User addUserInfo(String loginId) {
@@ -136,7 +165,7 @@ public class AccountManager {
 		}
 		JSONObject jsonObject = null;
 		try {
-			Log.e(TAG, out);
+			//Log.e(TAG, out);
 			jsonObject = new JSONObject(out);
 			user.setOperation(jsonObject.getString("operation"));
 			user.setPhotoUrl(jsonObject.getString("picture").replaceAll("\\\\", "/"));
@@ -145,13 +174,13 @@ public class AccountManager {
 			user.setOrg(jsonObject.getString("unit"));
 			user.setWorkNum(jsonObject.getString("workNum"));
 			user.setLoginId(loginId);
-			nm.close();
+			//nm.close();
 			return user;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		nm.close();
+		//nm.close();
 		return null;
 	}
 	private List<Announcement> getAnnouncements(String loginId) {
@@ -160,11 +189,12 @@ public class AccountManager {
 		try {
 			out = nm.executeGet(url + "GscSupport.svc/Notices?loginId=" + loginId);
 			JSONArray jsonArray = new JSONArray(out);
+			Log.e(TAG, out);
 	        for(int i = 0; i<jsonArray.length(); i++) {
 	        	Announcement ann = new Announcement();
 	            JSONObject jsonObject = (JSONObject) jsonArray.get(i);
 	            ann.setImageUrl(jsonObject.getString("picture").replaceAll("\\\\", "/"));
-	            ann.setImageName(FileManager.getFileName(jsonObject.getString("picture")));
+	            ann.setImageName(UUID.randomUUID() + "." + FileManager.getFileType(jsonObject.getString("picture")));
 	            ann.setTitle(jsonObject.getString("title"));
 	            ann.setContent(jsonObject.getString("content"));
 				ann.setRepDate(jsonObject.getString("issueDate"));
@@ -175,7 +205,7 @@ public class AccountManager {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		nm.close();
+		//nm.close();
 		return anns;
 	}
 	private InputStream getPicture(String picUrl) {
@@ -186,6 +216,7 @@ public class AccountManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		//nm.close();
 		return null;
 	}
 	public boolean postData(String loginId, String value) {

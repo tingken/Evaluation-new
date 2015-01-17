@@ -159,7 +159,9 @@ public class WebServiceManager {
         WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);  
         WifiInfo info = wifi.getConnectionInfo();
         String mac = info.getMacAddress();
-        return mac.replace(":", "");  
+        if(mac == null)
+        	return "";
+        return mac.replace(":", "");
     }
 	public String getAndroidId() {
 		String androidId = Settings.Secure.getString(context.getContentResolver(),Settings.Secure.ANDROID_ID);

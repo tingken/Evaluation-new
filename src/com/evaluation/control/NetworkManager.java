@@ -71,7 +71,7 @@ public class NetworkManager {
         getRequest.setURI(new URI(url));  
         response = client.execute(getRequest);  
         is = response.getEntity().getContent();
-        close();
+        //close();
         return is;
     }
 	
@@ -94,7 +94,10 @@ public class NetworkManager {
 			open();
 			getRequest.setURI(new URI(url));
 			response = client.execute(getRequest);
-			if (response.getStatusLine().getStatusCode() == 200) { //200表示请求成功    
+			Log.e(TAG, url);
+			int code = response.getStatusLine().getStatusCode();
+			Log.e(TAG, "isConnect(),response status code:" + code);
+			if (code == 200) { //200表示请求成功    
 				return true;
 			}
 		} catch (Exception e) {
@@ -102,7 +105,7 @@ public class NetworkManager {
 			//e.printStackTrace();
 			Log.e(TAG, e.getMessage());
 		}
-		close();
+		//close();
 		return false;
 	}
 	public void addFile(String key, String filePath, String type) {
@@ -125,7 +128,7 @@ public class NetworkManager {
 			//request.setEntity(postEntity);
 			response = client.execute(request);
 			int code = response.getStatusLine().getStatusCode();
-			Log.e(TAG, "response status code:" + code);
+			Log.e(TAG, "postData(),response status code:" + code);
 			if (code == 201) { //200表示请求成功    
 				return true;
 			}
@@ -138,7 +141,7 @@ public class NetworkManager {
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
-		close();
+		//close();
 		return false;
 	}
 	public boolean getContent() {
